@@ -5,16 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [closed]   # ignites when a PR targeting main is merged/closed
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   build:
-    # Only run the build when the change actually lands on main
-    # (push to main, or a PR that was merged).
-    if: >
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
 
     permissions:
@@ -23,19 +18,29 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
 
       - name: Set up JDK 17 (Android Gradle Plugin 8.2+)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        # v3 requested the retired "tools" SDK package by default and failed
+        # before the build could start. v4 uses the current command-line tools.
+        uses: android-actions/setup-android@v4
+        with:
+          packages: >-
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
 
       - name: Restore Gradle cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -48,53 +53,83 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build debug APK (assembleDebug)
-        run: ./gradlew :app:assembleDebug --no-daemon
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
-      - name: Run Android lint (tool chain report)
-        run: ./gradlew :app:lintDebug --no-daemon || true
-
-      - name: Generate build report (tool chain)
-        run: |
-          mkdir -p build-reports
-          cp -r app/build/reports build-reports/ 2>/dev/null || true
-          cp -r app/build/outputs build-reports/outputs 2>/dev/null || true
-          echo "Build timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > build-reports/build-info.txt
+      - name: Verify debug APK exists
+        run: test -s app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload debug APK artifact
-        uses: actions/upload-artifact@v4
+        id: upload-apk
+        uses: actions/upload-artifact@v7
         with:
           name: ams-keyboard-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
+
+      - name: Run Android lint (tool chain report)
+        id: lint
+        # Lint findings are reported, but do not discard an already-built APK.
+        continue-on-error: true
+        run: ./gradlew :app:lintDebug --no-daemon --stacktrace
+
+      - name: Generate build report (tool chain)
+        if: always()
+        run: |
+          mkdir -p build-reports
+          cp -r app/build/reports build-reports/ 2>/dev/null || true
+          cp -r app/build/outputs build-reports/outputs 2>/dev/null || true
+          {
+            echo "Build timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Commit: $GITHUB_SHA"
+            echo "Ref: $GITHUB_REF"
+            echo "Event: $GITHUB_EVENT_NAME"
+          } > build-reports/build-info.txt
+          java -version > build-reports/java-version.txt 2>&1 || true
+          ./gradlew --version > build-reports/gradle-version.txt 2>&1 || true
+          sdkmanager --list_installed > build-reports/sdk-packages.txt 2>&1 || true
 
       - name: Upload lint report artifact
-        uses: actions/upload-artifact@v4
+        id: upload-lint
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
           name: ams-keyboard-lint-report
-          path: app/build/reports/lint-results-debug.html
+          path: app/build/reports/lint-results-debug.*
           retention-days: 30
           if-no-files-found: warn
 
       - name: Upload full tool chain report artifact
-        uses: actions/upload-artifact@v4
+        id: upload-toolchain
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
           name: ams-keyboard-toolchain-report
           path: build-reports/
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
 
-      - name: Publish merge summary
+      - name: Publish build summary
         if: always()
+        env:
+          APK_UPLOAD: ${{ steps.upload-apk.outcome }}
+          LINT_RUN: ${{ steps.lint.outcome }}
+          LINT_UPLOAD: ${{ steps.upload-lint.outcome }}
+          TOOLCHAIN_UPLOAD: ${{ steps.upload-toolchain.outcome }}
         run: |
-          echo "## AMS Keyboard CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger:** \`${{ github.event_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Artifacts:**" >> $GITHUB_STEP_SUMMARY
-          echo "  - \`ams-keyboard-debug-apk\` — built debug APK" >> $GITHUB_STEP_SUMMARY
-          echo "  - \`ams-keyboard-lint-report\` — lint results" >> $GITHUB_STEP_SUMMARY
-          echo "  - \`ams-keyboard-toolchain-report\` — full tool chain / build report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Download artifacts from the **Artifacts** section of this workflow run." >> $GITHUB_STEP_SUMMARY
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## AMS Keyboard CI Summary
+
+          - **Trigger:** \`$GITHUB_EVENT_NAME\`
+          - **Branch:** \`$GITHUB_REF_NAME\`
+          - **Commit:** \`$GITHUB_SHA\`
+          - **Debug APK upload:** \`$APK_UPLOAD\`
+          - **Lint run:** \`$LINT_RUN\`
+          - **Lint report upload:** \`$LINT_UPLOAD\`
+          - **Tool chain report upload:** \`$TOOLCHAIN_UPLOAD\`
+
+          Successfully uploaded artifacts are available in the **Artifacts** section of this workflow run:
+          - \`ams-keyboard-debug-apk\` — installable debug APK
+          - \`ams-keyboard-lint-report\` — lint results
+          - \`ams-keyboard-toolchain-report\` — build outputs and tool chain versions
+          EOF

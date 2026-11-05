@@ -40,14 +40,16 @@ AMS-KEYBOARD/
 
 ## Build and install
 
-Requires Android Studio, Android SDK, and Gradle. This checkout does not include a Gradle wrapper, so build from Android Studio or use an installed Gradle version:
+Requires JDK 17 and an Android SDK with platform 34 and build-tools 34.0.0 (Android Studio can install these). The official Gradle 8.2 wrapper is included, so no separate Gradle installation is needed:
 
 ```bash
-gradle :app:assembleDebug
+./gradlew :app:assembleDebug
 ```
+
+On Windows, use `gradlew.bat :app:assembleDebug`. The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
 Install the APK, then enable **AMS Keyboard** in Android Settings → Language & input → On-screen keyboard. Select it in an editable field to use it.
 
 ## Continuous integration
 
-The workflow in `.github/workflows/ci.yml` builds the debug APK and uploads build/lint reports when changes land on `main`. See [`GITHUB_ACTIONS.md`](GITHUB_ACTIONS.md).
+The workflow in `.github/workflows/ci.yml` builds the debug APK and uploads build/lint reports for pull requests targeting `main`, pushes to `main`, and manual runs. See [`GITHUB_ACTIONS.md`](GITHUB_ACTIONS.md).
