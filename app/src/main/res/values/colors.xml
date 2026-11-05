@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default keyboard background: white -->
+    <color name="keyboard_background">#FFFFFF</color>
+    <!-- All text and key labels: black -->
+    <color name="key_text">#000000</color>
+    <color name="text_black">#000000</color>
+    <!-- Key fill: light gray, pressed state slightly darker -->
+    <color name="key_background">#F5F5F5</color>
+    <color name="key_background_pressed">#E0E0E0</color>
+    <!-- App theme accents -->
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+</resources>
