@@ -466,7 +466,7 @@ public class AmsKeyboardService extends InputMethodService
                 return null;
             }
             if (ignoreSensitiveClip && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                android.os.Bundle extras = clip.getDescription().getExtras();
+                android.os.PersistableBundle extras = clip.getDescription().getExtras();
                 if (extras != null && extras.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE, false)) {
                     return null;
                 }
