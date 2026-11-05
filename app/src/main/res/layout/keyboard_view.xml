@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/ime_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -28,7 +29,7 @@
             android:padding="11dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_tools"
-            android:tint="@color/toolbar_icon" />
+            app:tint="@color/toolbar_icon" />
 
         <ImageButton
             android:id="@+id/toolbar_emoji"
@@ -40,7 +41,7 @@
             android:padding="11dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_emoji"
-            android:tint="@color/toolbar_icon" />
+            app:tint="@color/toolbar_icon" />
 
         <ImageButton
             android:id="@+id/toolbar_clipboard"
@@ -52,7 +53,7 @@
             android:padding="11dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_clipboard"
-            android:tint="@color/toolbar_icon" />
+            app:tint="@color/toolbar_icon" />
 
         <ImageButton
             android:id="@+id/toolbar_copy"
@@ -64,7 +65,7 @@
             android:padding="11dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_copy"
-            android:tint="@color/toolbar_icon" />
+            app:tint="@color/toolbar_icon" />
 
         <ImageButton
             android:id="@+id/toolbar_paste"
@@ -76,7 +77,7 @@
             android:padding="11dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_paste"
-            android:tint="@color/toolbar_icon" />
+            app:tint="@color/toolbar_icon" />
 
         <ImageButton
             android:id="@+id/toolbar_keyboard"
@@ -88,7 +89,7 @@
             android:padding="11dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_keyboard"
-            android:tint="@color/toolbar_icon" />
+            app:tint="@color/toolbar_icon" />
     </LinearLayout>
 
     <!-- Number hints sit over the QWERTY row, as in the reference layout. -->
@@ -252,7 +253,7 @@
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_delete"
-                android:tint="@color/toolbar_icon" />
+                app:tint="@color/toolbar_icon" />
         </LinearLayout>
 
         <ScrollView
