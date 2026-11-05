@@ -4,4 +4,31 @@
     <string name="hint_enable">Enable AMS Keyboard in Settings &gt; Language &amp; input</string>
     <string name="settings_title">AMS Keyboard Settings</string>
     <string name="no_ads">No ads</string>
+
+    <string name="toolbar_tools">Quick tools</string>
+    <string name="toolbar_emoji">Emoji</string>
+    <string name="toolbar_clipboard">Clipboard history</string>
+    <string name="toolbar_copy">Copy selected text</string>
+    <string name="toolbar_paste">Paste clipboard text</string>
+    <string name="toolbar_keyboard">Keyboard</string>
+    <string name="quick_tools_title">Quick tools</string>
+    <string name="emoji_title">Emoji</string>
+    <string name="tool_clipboard">Clipboard</string>
+    <string name="tool_paste">Paste</string>
+    <string name="tool_select_all">Select all</string>
+    <string name="tool_copy">Copy</string>
+    <string name="tool_cut">Cut</string>
+    <string name="tool_keyboard">Keyboard</string>
+
+    <string name="clipboard_title">Clipboard</string>
+    <string name="clipboard_count">%1$d/%2$d</string>
+    <string name="clipboard_empty">Copy text while the keyboard is open and it will be saved here. Up to 50 recent clips are kept.\n\nTap a clip to paste it. Swipe left to delete.</string>
+    <string name="clipboard_paused">Clipboard history is paused. Turn it on to save new copies.</string>
+    <string name="clipboard_long_text">Long text · %1$d characters · Tap to paste</string>
+    <string name="clipboard_tap_to_paste">Tap to paste · Swipe left to delete</string>
+    <string name="clipboard_item_description">Tap to paste this clip. Swipe left to delete it.</string>
+    <string name="clipboard_back">Back to keyboard</string>
+    <string name="clipboard_clear">Clear clipboard history</string>
+    <string name="clipboard_history_on">Clipboard history is on</string>
+    <string name="clipboard_history_off">Clipboard history is off</string>
 </resources>
