@@ -82,8 +82,13 @@ jobs:
           print('::error title=Gradle build failed::' + message)
           PY
 
-      - name: Verify debug APK exists
-        run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Verify debug APK exists and is signed with the shared key
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
+            | tee build-reports/apk-signature.txt
+          grep -q "B45B3D9D7A194F3207A9A4C20DC41825CF3D0FD6187A634101D71377FE3A88AD" build-reports/apk-signature.txt
 
       - name: Upload debug APK artifact
         id: upload-apk

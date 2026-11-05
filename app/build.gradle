@@ -6,6 +6,19 @@ android {
     namespace 'com.ams.keyboard'
     compileSdk 34
 
+    // A checked-in debug keystore gives every build the same signature, so installing a new APK
+    // over an older one always works (Gradle's default debug key is generated per machine/runner,
+    // which is the reason updates were rejected with "App not installed").
+    // This key is public knowledge by design: it only signs debug builds, never a release.
+    signingConfigs {
+        debug {
+            storeFile file('../keystore/ams-debug.jks')
+            storePassword 'amskeyboard'
+            keyAlias 'amsdebug'
+            keyPassword 'amskeyboard'
+        }
+    }
+
     defaultConfig {
         applicationId "com.ams.keyboard"
         minSdk 24
@@ -24,7 +37,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            // Same applicationId as release so a debug build also upgrades in place.
+            // The shared signing config above is what makes every debug APK install over the
+            // previous one.
             versionNameSuffix "-debug"
         }
     }
