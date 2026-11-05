@@ -1,21 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The launcher screen remains light; the IME itself follows the dark reference screenshots. -->
-    <color name="keyboard_background">#FFFFFF</color>
+    <!-- App-wide light is gone: both the settings screen and the IME use the dark charcoal theme. -->
+    <color name="keyboard_background">#0F191D</color>
     <color name="ime_background">#202B30</color>
-    <color name="ime_toolbar_background">#1D282D</color>
+    <color name="ime_toolbar_background">#1A2429</color>
+    <color name="suggestion_background">#162025</color>
     <color name="key_text">#F5F7F8</color>
     <color name="key_hint">#68767B</color>
     <color name="toolbar_icon">#D0D6D8</color>
     <color name="ime_accent">#80CBC4</color>
+    <color name="ime_accent_dark">#4DA79F</color>
     <color name="text_black">#000000</color>
     <color name="key_background">#26343A</color>
     <color name="key_background_pressed">#3A4B51</color>
+    <color name="key_background_active">#2E6B66</color>
     <color name="clipboard_card">#FFFFFF</color>
-    <color name="clipboard_text">#657278</color>
-    <color name="clipboard_secondary_text">#879196</color>
+    <color name="clipboard_text">#39474D</color>
+    <color name="clipboard_secondary_text">#6E7B81</color>
+
+    <!-- Settings screen -->
+    <color name="settings_background">#0F191D</color>
+    <color name="settings_surface">#182327</color>
+    <color name="settings_surface_raised">#1E2A2F</color>
+    <color name="settings_divider">#233136</color>
+    <color name="settings_text_primary">#F2F5F6</color>
+    <color name="settings_text_secondary">#93A2A8</color>
+    <color name="switch_thumb_off">#8B9AA0</color>
+    <color name="switch_track_off">#2A383D</color>
+    <color name="button_text_dark">#0B1417</color>
+    <color name="danger">#EF9A9A</color>
+
     <!-- App theme accents -->
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorPrimary">#80CBC4</color>
+    <color name="colorPrimaryDark">#1A2429</color>
+    <color name="colorAccent">#80CBC4</color>
 </resources>

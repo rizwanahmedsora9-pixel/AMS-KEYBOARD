@@ -2,16 +2,85 @@
 <resources>
     <string name="app_name">AMS Keyboard</string>
     <string name="subtype_english_us">English (US)</string>
-    <string name="hint_enable">Enable AMS Keyboard in Settings &gt; Language &amp; input</string>
-    <string name="settings_title">AMS Keyboard Settings</string>
-    <string name="no_ads">No ads</string>
 
+    <!-- Onboarding / activation card -->
+    <string name="setup_title">Set up AMS Keyboard</string>
+    <string name="setup_step_enable_title">1. Enable the keyboard</string>
+    <string name="setup_step_enable_body">Turn on AMS Keyboard in the system input-method list so Android allows it to appear.</string>
+    <string name="setup_step_select_title">2. Choose it as your keyboard</string>
+    <string name="setup_step_select_body">Open the keyboard picker and select AMS Keyboard.</string>
+    <string name="setup_step_update_title">3. Updates install over the old version</string>
+    <string name="setup_step_update_body">Every new APK keeps the same app ID and signing key, so installing an update replaces the previous version in place. Your settings and clipboard history stay intact.</string>
+    <string name="setup_enable_button">Enable in settings</string>
+    <string name="setup_select_button">Choose AMS Keyboard</string>
+    <string name="setup_active">AMS Keyboard is enabled and selected.</string>
+    <string name="setup_needs_enable">AMS Keyboard is not enabled yet.</string>
+    <string name="setup_needs_select">AMS Keyboard is enabled but not selected.</string>
+    <string name="setup_refresh">Check again</string>
+    <string name="setup_open_keyboard_button">Open a test field</string>
+    <string name="version_label">Version %1$s (build %2$d)</string>
+
+    <!-- Settings groups -->
+    <string name="settings_group_typing">Typing</string>
+    <string name="settings_group_keyboard">Keyboard</string>
+    <string name="settings_group_clipboard">Clipboard</string>
+    <string name="settings_group_feedback">Feedback</string>
+    <string name="settings_group_about">About</string>
+    <string name="faq_updates_title">Installing and updating</string>
+    <string name="faq_updates_body">Install the APK once. Later builds keep the same applicationId and sign with the same key, so Android upgrades AMS Keyboard in place instead of creating a second app. Settings, clipboard history and your enabled-keyboard state survive the update. If you ever see \"App not installed\" while updating, uninstall the old copy once: a debug APK and a release APK have different signatures and Android refuses to mix them.</string>
+    <string name="faq_clipboard_title">Unlimited clipboard</string>
+    <string name="faq_clipboard_body">Clipboard entries are stored without a length limit. The list only shortens the preview; pasting always inserts the complete text, in chunks small enough for Android\'s binder. \"Copy all\" grabs the entire field, even when it was never selected.</string>
+    <string name="faq_copy_all_title">Ctrl + A, + C, + V, + X and Alt</string>
+    <string name="faq_copy_all_body">Ctrl+A selects everything, Ctrl+C copies the selection, Ctrl+X cuts it and Ctrl+V pastes. Ctrl and Alt latch like real PC modifiers: tap Ctrl once, then tap A. Alt sends Alt-based shortcuts (Alt+A to Alt+Z) to the app, which is what many editing apps expect.</string>
+    <string name="about_footer">AMS Keyboard · no ads, no tracking, no third-party branding</string>
+
+    <string name="setting_auto_correct_title">Auto-correct</string>
+    <string name="setting_auto_correct_summary">Fix misspelled words when you type space or punctuation.</string>
+    <string name="setting_suggestions_title">Suggestions bar</string>
+    <string name="setting_suggestions_summary">Show word predictions above the keyboard.</string>
+    <string name="setting_auto_capitalize_title">Auto-capitalize</string>
+    <string name="setting_auto_capitalize_summary">Start sentences and the first word of a field with a capital letter.</string>
+    <string name="setting_double_space_period_title">Double-space period</string>
+    <string name="setting_double_space_period_summary">Pressing space twice inserts a full stop and a space.</string>
+    <string name="setting_sound_title">Key sound</string>
+    <string name="setting_sound_summary">Play a click when a key is typed.</string>
+    <string name="setting_vibrate_title">Vibrate on keypress</string>
+    <string name="setting_vibrate_summary">Give a short haptic tick for each key.</string>
+    <string name="setting_key_preview_title">Key popup</string>
+    <string name="setting_key_preview_summary">Show a magnified preview of the key you press.</string>
+    <string name="setting_keyboard_height_title">Keyboard height</string>
+    <string name="setting_keyboard_height_summary">Drag the slider, or drag the keyboard toolbar up and down while typing. Changes apply immediately.</string>
+    <string name="setting_keyboard_height_drag_hint">Drag the handle up or down to resize · long-press to reset</string>
+    <string name="setting_keyboard_height_value">%1$d%%</string>
+    <string name="setting_row_gap_title">Row spacing</string>
+    <string name="setting_row_gap_summary">Gap between key rows.</string>
+    <string name="setting_row_gap_value">%1$d dp</string>
+    <string name="setting_long_press_symbols_title">Long-press symbols</string>
+    <string name="setting_long_press_symbols_summary">Hold a letter to type the number or symbol printed above it.</string>
+    <string name="setting_clipboard_history_title">Clipboard history</string>
+    <string name="setting_clipboard_history_summary">Save every copy so you can paste it later. Long text is stored in full.</string>
+    <string name="setting_clipboard_limit_title">History size</string>
+    <string name="setting_clipboard_limit_summary">How many clips to keep.</string>
+    <string name="setting_clipboard_limit_value">%1$d clips</string>
+    <string name="setting_alt_tools_title">Alt shortcuts toolbar</string>
+    <string name="setting_alt_tools_summary">Show a row of Alt-based shortcuts (Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X) above the keyboard.</string>
+    <string name="setting_reset_title">Reset all settings</string>
+    <string name="setting_reset_confirm">Reset all settings?</string>
+    <string name="setting_reset_confirm_message">Every option goes back to its default. Clipboard history is not deleted.</string>
+    <string name="setting_reset_done">Settings reset.</string>
+    <string name="reset">Reset</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+
+    <!-- Toolbar -->
     <string name="toolbar_tools">Quick tools</string>
     <string name="toolbar_emoji">Emoji</string>
     <string name="toolbar_clipboard">Clipboard history</string>
     <string name="toolbar_copy">Copy selected text</string>
     <string name="toolbar_paste">Paste clipboard text</string>
     <string name="toolbar_keyboard">Keyboard</string>
+    <string name="toolbar_shortcuts">Shortcuts</string>
+    <string name="toolbar_settings">Keyboard settings</string>
     <string name="quick_tools_title">Quick tools</string>
     <string name="emoji_title">Emoji</string>
     <string name="tool_clipboard">Clipboard</string>
@@ -19,10 +88,39 @@
     <string name="tool_select_all">Select all</string>
     <string name="tool_copy">Copy</string>
     <string name="tool_cut">Cut</string>
-    <string name="tool_keyboard">Keyboard</string>
+    <string name="tool_copy_all">Copy all</string>
+    <string name="tool_copy_all_done">Copied the whole field (%1$d characters).</string>
+    <string name="tool_copy_all_empty">Nothing to copy.</string>
+    <string name="tool_undo">Undo</string>
+    <string name="tool_redo">Redo</string>
+    <string name="tool_settings">Settings</string>
+    <string name="tool_alt_shortcuts">Shortcuts</string>
+    <string name="tool_move_start">Line start</string>
+    <string name="tool_move_end">Line end</string>
+    <string name="copy_failed">The selected text could not be copied.</string>
 
+    <!-- Shortcut pad -->
+    <string name="shortcuts_title">Shortcuts</string>
+    <string name="snippets_hint">Tap a shortcut · hold Ctrl or Alt and tap a key for a real PC shortcut</string>
+    <string name="shortcut_copy_all">Copy all</string>
+    <string name="shortcut_select_all_desc">Select all text</string>
+    <string name="shortcut_copy_desc">Copy the selection</string>
+    <string name="shortcut_cut_desc">Cut the selection</string>
+    <string name="shortcut_paste_desc">Paste the clipboard</string>
+    <string name="shortcut_undo_desc">Undo the last edit</string>
+    <string name="shortcut_redo_desc">Redo the last undone edit</string>
+    <string name="shortcut_copy_all_desc">Copy the whole field</string>
+    <string name="shortcut_move_start_desc">Jump to the beginning of the line</string>
+    <string name="shortcut_move_end_desc">Jump to the end of the line</string>
+    <string name="shortcut_select_word_desc">Select the word at the cursor</string>
+    <string name="shortcut_alt_label">Alt</string>
+
+    <!-- Clipboard panel -->
     <string name="clipboard_title">Clipboard</string>
     <string name="clipboard_count">%1$d/%2$d</string>
+    <string name="clipboard_count_zero">0/50</string>
+    <string name="suggestion_idle">Type to see suggestions</string>
+    <string name="suggestions_disabled">Suggestions are off · enable them in Settings</string>
     <string name="clipboard_empty">Copy text while the keyboard is open and it will be saved here. Up to 50 recent clips are kept.\n\nTap a clip to paste it. Swipe left to delete.</string>
     <string name="clipboard_paused">Clipboard history is paused. Turn it on to save new copies.</string>
     <string name="clipboard_long_text">Long text · %1$d characters · Tap to paste</string>

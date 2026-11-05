@@ -4,15 +4,25 @@
 
 | File | Trigger | What it does |
 |------|---------|--------------|
-| `.github/workflows/ci.yml` | Pull request activity targeting `main`, push to `main`, or manual dispatch | Validates the Gradle wrapper, builds the debug APK, runs lint, and uploads APK + tool chain report artifacts |
+| `.github/workflows/ci.yml` | Pull request activity targeting `main`, push to `main`, or manual dispatch | Validates the Gradle wrapper, runs the auto-correct unit tests, builds the debug APK, runs lint, and uploads APK / test / lint / tool chain artifacts |
 
 ## Artifacts produced on every successful build
 
 1. **`ams-keyboard-debug-apk`** — `app-debug.apk` (installable on emulator/device)
-2. **`ams-keyboard-lint-report`** — lint results (`lint-results-debug.html` and any other generated lint reports)
-3. **`ams-keyboard-toolchain-report`** — build outputs plus Java, Gradle, SDK, commit, and timestamp information (`build-reports/`)
+2. **`ams-keyboard-unit-tests`** — `testDebugUnitTest` report for the auto-correct engine
+3. **`ams-keyboard-lint-report`** — lint results (`lint-results-debug.html` and any other generated lint reports)
+4. **`ams-keyboard-toolchain-report`** — build outputs plus Java, Gradle, SDK, commit, and timestamp information (`build-reports/`)
 
-The APK is uploaded immediately after `assembleDebug`, before lint runs. A missing or empty APK fails the workflow instead of silently uploading nothing. Lint findings are still reported but do not discard an already-built APK.
+Unit tests run before the APK is built, so a broken auto-correct engine fails the run early. The APK is uploaded immediately after `assembleDebug`, before lint runs. A missing or empty APK fails the workflow instead of silently uploading nothing. Lint findings are still reported but do not discard an already-built APK.
+
+## Installing a CI build over an existing install
+
+Every CI APK is signed with the standard Android **debug keystore**, which is regenerated with the
+same known key on every runner, and the app id (`com.ams.keyboard`) never changes. The APK therefore
+installs as an in-place update over previous debug builds. Remember to bump `versionCode` in
+`app/build.gradle` for each new version you hand out: Android rejects an APK whose versionCode is
+lower than the installed one, and it rejects any APK signed with a different key (for example a
+release build next to a debug build).
 
 ## How to view the reports
 

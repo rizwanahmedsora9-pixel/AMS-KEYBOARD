@@ -3,4 +3,8 @@
     <dimen name="key_height">49dp</dimen>
     <dimen name="key_text_size">21sp</dimen>
     <dimen name="key_corner_radius">4dp</dimen>
+    <dimen name="suggestion_strip_height">40dp</dimen>
+    <dimen name="toolbar_height">44dp</dimen>
+    <dimen name="card_corner_radius">14dp</dimen>
+    <dimen name="screen_padding">18dp</dimen>
 </resources>

@@ -1,57 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Letters layout.
+
+  Modifier column on the left: Shift / Caps, Ctrl, Alt. The Shift key is sticky, so Android
+  reports its latched state through key_background.xml (checked/active) instead of the old
+  half-highlighted look. Ctrl and Alt are handled in AmsKeyboardService: they stay held until the
+  next key is typed, exactly like a PC keyboard.
+
+  Long-press characters are attached to letter keys (the 1-0 hints plus common symbols), so the
+  number row hints can finally be typed from the letter layout.
+-->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="10%p"
     android:keyHeight="49dp"
     android:horizontalGap="0dp"
     android:verticalGap="3dp">
 
-    <!-- QWERTY row. The 1–0 hints are displayed in the small strip above. -->
     <Row>
-        <Key android:codes="113" android:keyLabel="q" />
-        <Key android:codes="119" android:keyLabel="w" />
-        <Key android:codes="101" android:keyLabel="e" />
-        <Key android:codes="114" android:keyLabel="r" />
-        <Key android:codes="116" android:keyLabel="t" />
-        <Key android:codes="121" android:keyLabel="y" />
-        <Key android:codes="117" android:keyLabel="u" />
-        <Key android:codes="105" android:keyLabel="i" />
-        <Key android:codes="111" android:keyLabel="o" />
-        <Key android:codes="112" android:keyLabel="p" />
+        <Key android:codes="113" android:keyLabel="q" android:popupCharacters="1" android:keyEdgeFlags="left" />
+        <Key android:codes="119" android:keyLabel="w" android:popupCharacters="2" />
+        <Key android:codes="101" android:keyLabel="e" android:popupCharacters="3" />
+        <Key android:codes="114" android:keyLabel="r" android:popupCharacters="4" />
+        <Key android:codes="116" android:keyLabel="t" android:popupCharacters="5" />
+        <Key android:codes="121" android:keyLabel="y" android:popupCharacters="6" />
+        <Key android:codes="117" android:keyLabel="u" android:popupCharacters="7" />
+        <Key android:codes="105" android:keyLabel="i" android:popupCharacters="8" />
+        <Key android:codes="111" android:keyLabel="o" android:popupCharacters="9" />
+        <Key android:codes="112" android:keyLabel="p" android:popupCharacters="0" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- Home row, slightly narrower keys centered by their percentage width. -->
     <Row android:keyWidth="11.11%p">
-        <Key android:codes="97" android:keyLabel="a" />
-        <Key android:codes="115" android:keyLabel="s" />
-        <Key android:codes="100" android:keyLabel="d" />
-        <Key android:codes="102" android:keyLabel="f" />
-        <Key android:codes="103" android:keyLabel="g" />
-        <Key android:codes="104" android:keyLabel="h" />
-        <Key android:codes="106" android:keyLabel="j" />
-        <Key android:codes="107" android:keyLabel="k" />
-        <Key android:codes="108" android:keyLabel="l" />
+        <Key android:codes="97" android:keyLabel="a" android:popupCharacters="@" android:keyWidth="11.12%p" android:keyEdgeFlags="left" />
+        <Key android:codes="115" android:keyLabel="s" android:popupCharacters="#" />
+        <Key android:codes="100" android:keyLabel="d" android:popupCharacters="$" />
+        <Key android:codes="102" android:keyLabel="f" android:popupCharacters="%" />
+        <Key android:codes="103" android:keyLabel="g" android:popupCharacters="&amp;" />
+        <Key android:codes="104" android:keyLabel="h" android:popupCharacters="-" />
+        <Key android:codes="106" android:keyLabel="j" android:popupCharacters="+" />
+        <Key android:codes="107" android:keyLabel="k" android:popupCharacters="(" />
+        <Key android:codes="108" android:keyLabel="l" android:popupCharacters=")" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- Shift, letters, and delete. -->
-    <Row>
-        <Key android:codes="-1" android:keyLabel="⇧" android:keyWidth="15%p" />
-        <Key android:codes="122" android:keyLabel="z" />
-        <Key android:codes="120" android:keyLabel="x" />
-        <Key android:codes="99" android:keyLabel="c" />
-        <Key android:codes="118" android:keyLabel="v" />
-        <Key android:codes="98" android:keyLabel="b" />
-        <Key android:codes="110" android:keyLabel="n" />
-        <Key android:codes="109" android:keyLabel="m" />
-        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="15%p" android:isRepeatable="true" />
+    <Row android:keyWidth="10.71%p">
+        <Key android:codes="-1" android:keyIcon="@drawable/ic_shift" android:keyLabel="⇧"
+            android:keyWidth="12.5%p" android:isModifier="true" android:isSticky="true"
+            android:keyEdgeFlags="left" />
+        <Key android:codes="122" android:keyLabel="z" android:popupCharacters="*" />
+        <Key android:codes="120" android:keyLabel="x" android:popupCharacters="&quot;" />
+        <Key android:codes="99" android:keyLabel="c" android:popupCharacters="'" />
+        <Key android:codes="118" android:keyLabel="v" android:popupCharacters=":" />
+        <Key android:codes="98" android:keyLabel="b" android:popupCharacters=";" />
+        <Key android:codes="110" android:keyLabel="n" android:popupCharacters="!" />
+        <Key android:codes="109" android:keyLabel="m" android:popupCharacters="?" />
+        <Key android:codes="-5" android:keyIcon="@drawable/ic_backspace_wide" android:keyLabel="⌫"
+            android:keyWidth="12.5%p" android:isRepeatable="true" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- Bottom controls: symbols, emoji, punctuation, space, and return. -->
+    <!-- Bottom row: Ctrl / Alt / symbols / space / emoji / enter. 11+9+12+9+28+9+10+12 = 100% -->
     <Row>
-        <Key android:codes="-2" android:keyLabel="\?123" android:keyWidth="14%p" />
-        <Key android:codes="-101" android:keyLabel="☺" android:keyWidth="10%p" />
-        <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p" />
-        <Key android:codes="32" android:keyLabel="English (US)" android:keyWidth="40%p" />
-        <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p" />
-        <Key android:codes="10" android:keyLabel="↵" android:keyWidth="20%p" />
+        <Key android:codes="1001" android:keyLabel="Ctrl" android:keyWidth="11%p"
+            android:isModifier="true" android:keyEdgeFlags="left" />
+        <Key android:codes="1002" android:keyLabel="Alt" android:keyWidth="9%p"
+            android:isModifier="true" />
+        <Key android:codes="-2" android:keyLabel="\?123" android:keyWidth="12%p" />
+        <Key android:codes="44" android:keyLabel="," android:keyWidth="9%p" />
+        <Key android:codes="32" android:keyLabel="English (US)" android:keyWidth="28%p" />
+        <Key android:codes="46" android:keyLabel="." android:keyWidth="9%p" />
+        <Key android:codes="-1001" android:keyLabel="☺" android:keyWidth="10%p" />
+        <Key android:codes="10" android:keyIcon="@drawable/ic_enter" android:keyLabel="↵"
+            android:keyWidth="12%p" android:keyEdgeFlags="right" />
     </Row>
 </Keyboard>

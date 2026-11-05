@@ -10,10 +10,12 @@ android {
         applicationId "com.ams.keyboard"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // Bump versionCode for every build you hand out. Android only replaces an installed app
+        // when the new APK has the same applicationId, the same signing key and a versionCode
+        // that is greater than or equal to the installed one.
+        versionCode 2
+        versionName "1.1"
     }
 
     buildTypes {
@@ -21,15 +23,28 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            // Same applicationId as release so a debug build also upgrades in place.
+            versionNameSuffix "-debug"
+        }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    lint {
+        abortOnError false
+    }
 }
 
+// AMS Keyboard deliberately has zero runtime dependencies: the IME and the settings screen use
+// only framework views, so the build needs no external artifacts and the APK stays small.
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
+    testImplementation 'junit:junit:4.13.2'
 }
