@@ -88,7 +88,7 @@ jobs:
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
           "$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
             | tee build-reports/apk-signature.txt
-          grep -q "B45B3D9D7A194F3207A9A4C20DC41825CF3D0FD6187A634101D71377FE3A88AD" build-reports/apk-signature.txt
+          grep -qi "b45b3d9d7a194f3207a9a4c20dc41825cf3d0fd6187a634101d71377fe3a88ad" build-reports/apk-signature.txt
 
       - name: Upload debug APK artifact
         id: upload-apk
