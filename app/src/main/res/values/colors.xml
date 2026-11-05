@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Default keyboard background: white -->
+    <!-- The launcher screen remains light; the IME itself follows the dark reference screenshots. -->
     <color name="keyboard_background">#FFFFFF</color>
-    <!-- All text and key labels: black -->
-    <color name="key_text">#000000</color>
+    <color name="ime_background">#202B30</color>
+    <color name="ime_toolbar_background">#1D282D</color>
+    <color name="key_text">#F5F7F8</color>
+    <color name="key_hint">#68767B</color>
+    <color name="toolbar_icon">#D0D6D8</color>
+    <color name="ime_accent">#80CBC4</color>
     <color name="text_black">#000000</color>
-    <!-- Key fill: light gray, pressed state slightly darker -->
-    <color name="key_background">#F5F5F5</color>
-    <color name="key_background_pressed">#E0E0E0</color>
+    <color name="key_background">#26343A</color>
+    <color name="key_background_pressed">#3A4B51</color>
+    <color name="clipboard_card">#FFFFFF</color>
+    <color name="clipboard_text">#657278</color>
+    <color name="clipboard_secondary_text">#879196</color>
     <!-- App theme accents -->
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
