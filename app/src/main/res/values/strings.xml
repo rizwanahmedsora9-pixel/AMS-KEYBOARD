@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AMS Keyboard</string>
+    <string name="hint_enable">Enable AMS Keyboard in Settings &gt; Language &amp; input</string>
+    <string name="settings_title">AMS Keyboard Settings</string>
+    <string name="no_ads">No ads</string>
+</resources>
