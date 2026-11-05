@@ -47,7 +47,7 @@
 
     <!-- Bottom controls: symbols, emoji, punctuation, space, and return. -->
     <Row>
-        <Key android:codes="-2" android:keyLabel="?123" android:keyWidth="14%p" />
+        <Key android:codes="-2" android:keyLabel="\?123" android:keyWidth="14%p" />
         <Key android:codes="-101" android:keyLabel="☺" android:keyWidth="10%p" />
         <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p" />
         <Key android:codes="32" android:keyLabel="English (US)" android:keyWidth="40%p" />
