@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Bottom 3D drop shadow -->
+    <item android:top="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mech_key_shadow" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+    <!-- Raised mechanical key preview badge with teal accent border -->
+    <item android:bottom="3dp" android:left="1dp" android:right="1dp" android:top="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mech_plate_background" />
+            <corners android:radius="12dp" />
+            <stroke android:width="2dp" android:color="@color/ime_accent" />
+        </shape>
+    </item>
+</layer-list>

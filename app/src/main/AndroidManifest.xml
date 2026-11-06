@@ -37,10 +37,22 @@
             android:name=".QuickToolsActivity"
             android:exported="true"
             android:excludeFromRecents="true"
+            android:taskAffinity=""
             android:label="@string/quick_tools_dialog_title"
             android:launchMode="singleInstance"
             android:theme="@style/QuickToolsDialogTheme"
             android:windowSoftInputMode="adjustResize|stateVisible" />
+
+        <!-- Transparent trampoline to collapse notification shade and force-open keyboard anywhere -->
+        <activity
+            android:name=".OpenKeyboardActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:launchMode="singleInstance"
+            android:theme="@style/TrampolineTheme"
+            android:windowSoftInputMode="stateUnchanged" />
 
         <!-- AMS Keyboard input method service. No ads, no third-party icons. -->
         <service
