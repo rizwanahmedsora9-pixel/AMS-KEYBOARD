@@ -3,17 +3,20 @@ package com.ams.keyboard;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.view.inputmethod.InputMethodManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -27,6 +30,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethod;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -118,6 +122,16 @@ public class AmsKeyboardService extends InputMethodService
     private ImageButton mSettingsButton;
     private ImageButton mToolbarSettingsButton;
 
+    // Center Key Preview HUD
+    private View mCenterPreviewContainer;
+    private TextView mCenterPreviewText;
+    private final Handler mCenterPreviewHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mHideCenterPreviewRunnable = () -> {
+        if (mCenterPreviewContainer != null) {
+            mCenterPreviewContainer.setVisibility(View.GONE);
+        }
+    };
+
     // Keyboards
     private AmsKeyboard mQwertyKeyboard;
     private AmsKeyboard mSymbolsKeyboard;
@@ -165,9 +179,97 @@ public class AmsKeyboardService extends InputMethodService
 
     private Vibrator mVibrator;
 
+    private static AmsKeyboardService sInstance;
+    private static volatile boolean sPendingForceOpen = false;
+
+    private boolean mForceShowActive = false;
+    private long mForceShowTimestamp = 0L;
+    private final Runnable mForceOpenRunnable1 = this::executeForceShowWindow;
+    private final Runnable mForceOpenRunnable2 = this::executeForceShowWindow;
+    private final Runnable mForceOpenRunnable3 = this::executeForceShowWindow;
+
+    public static AmsKeyboardService getInstance() {
+        return sInstance;
+    }
+
+    public static void setPendingForceOpen(boolean pending) {
+        sPendingForceOpen = pending;
+    }
+
+    /** Forces AMS Keyboard to open on screen anywhere, even without a focused text field. */
+    public static void showKeyboardAnytime(Context context) {
+        triggerForceOpenFromTrampoline(context);
+    }
+
+    /**
+     * Triggered after {@link OpenKeyboardActivity} collapses the notification shade and finishes,
+     * or directly from {@link MainActivity} when AMS Keyboard is already selected.
+     */
+    public static void triggerForceOpenFromTrampoline(Context context) {
+        sPendingForceOpen = true;
+        AmsKeyboardService instance = sInstance;
+        if (instance != null) {
+            instance.mMainHandler.post(instance::scheduleForceOpenSequence);
+            return;
+        }
+        if (context != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            try {
+                InputMethodManager imm =
+                        (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void scheduleForceOpenSequence() {
+        if (mDestroying) {
+            return;
+        }
+        sPendingForceOpen = false;
+        mForceShowActive = true;
+        mForceShowTimestamp = SystemClock.uptimeMillis();
+        cancelPendingForceOpenCallbacks();
+        // Run across the window-focus handoff after the notification shade / trampoline closes.
+        mMainHandler.postDelayed(mForceOpenRunnable1, 70);
+        mMainHandler.postDelayed(mForceOpenRunnable2, 220);
+        mMainHandler.postDelayed(mForceOpenRunnable3, 420);
+    }
+
+    private void cancelPendingForceOpenCallbacks() {
+        mMainHandler.removeCallbacks(mForceOpenRunnable1);
+        mMainHandler.removeCallbacks(mForceOpenRunnable2);
+        mMainHandler.removeCallbacks(mForceOpenRunnable3);
+    }
+
+    private void executeForceShowWindow() {
+        if (mDestroying) {
+            return;
+        }
+        sPendingForceOpen = false;
+        mForceShowActive = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                requestShowSelf(InputMethod.SHOW_FORCED);
+            } catch (Exception ignored) {
+            }
+        }
+        try {
+            showWindow(true);
+        } catch (Exception ignored) {
+        }
+        try {
+            updateInputViewShown();
+        } catch (Exception ignored) {
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        sInstance = this;
         mClipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
         mClipboardHistory = new ClipboardHistoryStore(this);
         mHistoryWorker = Executors.newSingleThreadExecutor();
@@ -211,6 +313,8 @@ public class AmsKeyboardService extends InputMethodService
         mPasteButton = mRootView.findViewById(R.id.toolbar_paste);
         mKeyboardButton = mRootView.findViewById(R.id.toolbar_keyboard);
         mToolbarSettingsButton = mRootView.findViewById(R.id.toolbar_settings);
+        mCenterPreviewContainer = mRootView.findViewById(R.id.center_preview_container);
+        mCenterPreviewText = mRootView.findViewById(R.id.center_preview_text);
 
         mDictionary = WordDictionary.getInstance(this);
 
@@ -240,7 +344,7 @@ public class AmsKeyboardService extends InputMethodService
         mKeyboardView.setKeyboard(mCurrentKeyboard);
         mKeyboardView.setOnKeyboardActionListener(this);
         mKeyboardView.setEnabled(true);
-        mKeyboardView.setPreviewEnabled(mPreviewEnabled);
+        mKeyboardView.setPreviewEnabled(false);
         applyKeyboardGeometry();
         updateModifierAppearance();
     }
@@ -290,7 +394,10 @@ public class AmsKeyboardService extends InputMethodService
 
     private void applyPreferencesToViews() {
         if (mKeyboardView != null) {
-            mKeyboardView.setPreviewEnabled(mPreviewEnabled);
+            mKeyboardView.setPreviewEnabled(false);
+        }
+        if (!mPreviewEnabled && mCenterPreviewContainer != null) {
+            mCenterPreviewContainer.setVisibility(View.GONE);
         }
         if (mQwertyKeyboard != null) {
             mQwertyKeyboard.setLongPressSymbolsEnabled(mLongPressEnabled);
@@ -351,6 +458,7 @@ public class AmsKeyboardService extends InputMethodService
         if (mRootView == null) {
             return;
         }
+        hideCenterKeyPreview();
         updateChromeVisibility(true);
         mKeyboardView.setVisibility(View.GONE);
         mToolsPanel.setVisibility(View.VISIBLE);
@@ -365,6 +473,7 @@ public class AmsKeyboardService extends InputMethodService
         if (mRootView == null) {
             return;
         }
+        hideCenterKeyPreview();
         updateChromeVisibility(true);
         mKeyboardView.setVisibility(View.GONE);
         mToolsPanel.setVisibility(View.GONE);
@@ -379,6 +488,7 @@ public class AmsKeyboardService extends InputMethodService
         if (mRootView == null) {
             return;
         }
+        hideCenterKeyPreview();
         updateChromeVisibility(true);
         mKeyboardView.setVisibility(View.GONE);
         mToolsPanel.setVisibility(View.GONE);
@@ -393,6 +503,7 @@ public class AmsKeyboardService extends InputMethodService
         if (mRootView == null) {
             return;
         }
+        hideCenterKeyPreview();
         // The clipboard view has its own header, so the chrome moves out of the way.
         updateChromeVisibility(false);
         mKeyboardView.setVisibility(View.GONE);
@@ -748,8 +859,12 @@ public class AmsKeyboardService extends InputMethodService
                 KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
                 KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE,
                 InputDevice.SOURCE_KEYBOARD);
-        connection.sendKeyEvent(down);
-        connection.sendKeyEvent(up);
+        if (connection != null) {
+            connection.sendKeyEvent(down);
+            connection.sendKeyEvent(up);
+        } else {
+            sendDownUpKeyEvents(keyCode);
+        }
     }
 
     private void sendControlKey(InputConnection connection, boolean withControl, int keyCode) {
@@ -1207,9 +1322,16 @@ public class AmsKeyboardService extends InputMethodService
                     return;
                 }
                 InputConnection connection = getCurrentInputConnection();
-                if (connection != null && completeText != null) {
-                    // Read and paste the full database value; only the on-screen preview is shortened.
-                    commitTextInChunks(connection, completeText);
+                if (completeText != null) {
+                    if (connection != null && !isRawKeyMode()) {
+                        // Read and paste the full database value; only the on-screen preview is shortened.
+                        commitTextInChunks(connection, completeText);
+                    } else {
+                        copyStringToClipboard(completeText);
+                        for (int i = 0; i < completeText.length(); i++) {
+                            sendKeyChar(completeText.charAt(i));
+                        }
+                    }
                 }
                 showKeyboardPanel();
             });
@@ -1284,6 +1406,52 @@ public class AmsKeyboardService extends InputMethodService
     // ---------------------------------------------------------------- lifecycle
 
     @Override
+    public boolean onEvaluateFullscreenMode() {
+        // Never cover the host app with a fullscreen extract view (essential for games/consoles).
+        return false;
+    }
+
+    @Override
+    public boolean onEvaluateInputViewShown() {
+        if (mForceShowActive) {
+            return true;
+        }
+        return super.onEvaluateInputViewShown();
+    }
+
+    @Override
+    public boolean onShowInputRequested(int flags, boolean configChange) {
+        if (mForceShowActive) {
+            return true;
+        }
+        return super.onShowInputRequested(flags, configChange);
+    }
+
+    @Override
+    public void onBindInput() {
+        super.onBindInput();
+        NotificationHelper.ensureNotificationShown(this);
+        if (sPendingForceOpen) {
+            scheduleForceOpenSequence();
+        }
+    }
+
+    @Override
+    public void onStartInput(EditorInfo attribute, boolean restarting) {
+        super.onStartInput(attribute, restarting);
+        NotificationHelper.ensureNotificationShown(this);
+        long elapsed = SystemClock.uptimeMillis() - mForceShowTimestamp;
+        if (sPendingForceOpen) {
+            scheduleForceOpenSequence();
+        } else if (mForceShowActive && elapsed < 1200) {
+            mMainHandler.removeCallbacks(mForceOpenRunnable1);
+            mMainHandler.postDelayed(mForceOpenRunnable1, 45);
+        } else if (mForceShowActive && !restarting && elapsed >= 1200) {
+            mForceShowActive = false;
+        }
+    }
+
+    @Override
     public void onStartInputView(EditorInfo attribute, boolean restarting) {
         super.onStartInputView(attribute, restarting);
         readPreferences();
@@ -1302,6 +1470,7 @@ public class AmsKeyboardService extends InputMethodService
         showKeyboardPanel();
 
         mInputViewVisible = true;
+        NotificationHelper.ensureNotificationShown(this);
         if (mHistoryEnabled) {
             registerClipboardListener();
             // Android only lets an active IME inspect the current clipboard. Save its current
@@ -1309,7 +1478,8 @@ public class AmsKeyboardService extends InputMethodService
             capturePrimaryClipboard(true);
         }
         InputConnection connection = getCurrentInputConnection();
-        if (mAutoCapitalizeEnabled && connection != null && shouldAutoCapitalize(connection)) {
+        if (mAutoCapitalizeEnabled && connection != null && !isRawKeyMode()
+                && shouldAutoCapitalize(connection)) {
             applyAutoShift(true);
         }
     }
@@ -1317,6 +1487,10 @@ public class AmsKeyboardService extends InputMethodService
     @Override
     public void onFinishInputView(boolean finishingInput) {
         mInputViewVisible = false;
+        if (SystemClock.uptimeMillis() - mForceShowTimestamp >= 900) {
+            mForceShowActive = false;
+        }
+        hideCenterKeyPreview();
         if (mHeightToast != null) {
             mHeightToast.cancel();
             mHeightToast = null;
@@ -1328,9 +1502,38 @@ public class AmsKeyboardService extends InputMethodService
     }
 
     @Override
+    public void onWindowHidden() {
+        super.onWindowHidden();
+        if (SystemClock.uptimeMillis() - mForceShowTimestamp >= 900) {
+            mForceShowActive = false;
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown()) {
+            mForceShowActive = false;
+            sPendingForceOpen = false;
+            cancelPendingForceOpenCallbacks();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                try {
+                    requestHideSelf(0);
+                } catch (Exception ignored) {
+                }
+            }
+            hideWindow();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
     public void onDestroy() {
         mDestroying = true;
         mInputViewVisible = false;
+        mForceShowActive = false;
+        cancelPendingForceOpenCallbacks();
+        mCenterPreviewHandler.removeCallbacks(mHideCenterPreviewRunnable);
         unregisterClipboardListener();
         try {
             KeyboardPreferences.get(this)
@@ -1349,6 +1552,9 @@ public class AmsKeyboardService extends InputMethodService
             }
             mHistoryWorker.shutdown();
         }
+        if (sInstance == this) {
+            sInstance = null;
+        }
         super.onDestroy();
     }
 
@@ -1363,6 +1569,7 @@ public class AmsKeyboardService extends InputMethodService
         } else {
             NotificationHelper.cancelNotification(this);
         }
+        QuickToolsTileService.requestListeningState(this);
     }
 
     // ---------------------------------------------------------------- key handling
@@ -1380,11 +1587,73 @@ public class AmsKeyboardService extends InputMethodService
         if (mSoundEnabled) {
             mKeyboardView.playSoundEffect(android.view.SoundEffectConstants.CLICK);
         }
+        if (mPreviewEnabled) {
+            showCenterKeyPreview(primaryCode);
+        }
     }
 
     @Override
     public void onRelease(int primaryCode) {
-        // Feedback is handled in onPress.
+        hideCenterKeyPreview();
+    }
+
+    private void showCenterKeyPreview(int primaryCode) {
+        if (mCenterPreviewContainer == null || mCenterPreviewText == null) {
+            return;
+        }
+        mCenterPreviewHandler.removeCallbacks(mHideCenterPreviewRunnable);
+        String label = getPreviewLabelForCode(primaryCode);
+        if (TextUtils.isEmpty(label)) {
+            mCenterPreviewContainer.setVisibility(View.GONE);
+            return;
+        }
+        mCenterPreviewText.setText(label);
+        mCenterPreviewContainer.setVisibility(View.VISIBLE);
+        mCenterPreviewContainer.bringToFront();
+    }
+
+    private void hideCenterKeyPreview() {
+        mCenterPreviewHandler.removeCallbacks(mHideCenterPreviewRunnable);
+        mCenterPreviewHandler.postDelayed(mHideCenterPreviewRunnable, 80);
+    }
+
+    private String getPreviewLabelForCode(int primaryCode) {
+        switch (primaryCode) {
+            case Keyboard.KEYCODE_SHIFT:
+                return mCaps ? "⇪ CAPS" : (mShiftLatched ? "⇧ SHIFT" : "⇧");
+            case Keyboard.KEYCODE_DELETE:
+                return "⌫";
+            case Keyboard.KEYCODE_DONE:
+            case 10:
+                return "↵";
+            case 32:
+                return "SPACE";
+            case 9:
+                return "TAB";
+            case KEYCODE_CTRL:
+                return mCtrlLatched ? "CTRL [ON]" : "CTRL";
+            case KEYCODE_ALT:
+                return mAltLatched ? "ALT [ON]" : "ALT";
+            case Keyboard.KEYCODE_MODE_CHANGE:
+                return "?123";
+            case CUSTOM_SYMBOLS_CODE:
+                return "ABC";
+            case CUSTOM_EMOJI_CODE:
+                return "😊";
+            case 0:
+            case Keyboard.KEYCODE_CANCEL:
+                return null;
+            default:
+                if (primaryCode > 0) {
+                    char ch = (char) primaryCode;
+                    if (Character.isLetter(ch)) {
+                        boolean uppercase = mCaps || mShiftLatched;
+                        return String.valueOf(uppercase ? Character.toUpperCase(ch) : Character.toLowerCase(ch));
+                    }
+                    return String.valueOf(ch);
+                }
+                return null;
+        }
     }
 
     @Override
@@ -1415,7 +1684,8 @@ public class AmsKeyboardService extends InputMethodService
         }
 
         InputConnection connection = getCurrentInputConnection();
-        if (connection == null) {
+        if (connection == null || isRawKeyMode()) {
+            handleNoConnectionKey(connection, primaryCode);
             return;
         }
 
@@ -1445,15 +1715,19 @@ public class AmsKeyboardService extends InputMethodService
     @Override
     public void onText(CharSequence text) {
         InputConnection connection = getCurrentInputConnection();
-        if (connection != null && text != null) {
+        if (connection != null && !isRawKeyMode() && text != null) {
             commitTextInChunks(connection, text);
             resetComposingWord();
+        } else if (text != null) {
+            for (int i = 0; i < text.length(); i++) {
+                sendKeyChar(text.charAt(i));
+            }
         }
     }
 
     // ---------------------------------------------------------------- modifiers
 
-    private static final long SHIFT_DOUBLE_TAP_TIMEOUT = 500;
+    private static final long SHIFT_DOUBLE_TAP_TIMEOUT = 600;
 
     private void handleShiftKey() {
         long now = SystemClock.uptimeMillis();
@@ -1464,8 +1738,8 @@ public class AmsKeyboardService extends InputMethodService
             // If already in Caps Lock, any shift tap unlocks it
             mCaps = false;
             mShiftLatched = false;
-        } else if (interval > 40 && interval < SHIFT_DOUBLE_TAP_TIMEOUT) {
-            // Double tap within 500ms locks Caps Lock
+        } else if (interval > 10 && interval < SHIFT_DOUBLE_TAP_TIMEOUT) {
+            // Double tap within 600ms locks Caps Lock
             mCaps = true;
             mShiftLatched = true;
         } else if (mShiftLatched) {
@@ -1622,6 +1896,83 @@ public class AmsKeyboardService extends InputMethodService
     }
 
     // ---------------------------------------------------------------- typing
+
+    /**
+     * Returns true when no real text editor is focused (e.g. Hacker's Keyboard mode on the Home
+     * screen, games, DOSBox, VNC, or raw console views with {@code InputType.TYPE_NULL}).
+     */
+    private boolean isRawKeyMode() {
+        if (getCurrentInputConnection() == null) {
+            return true;
+        }
+        EditorInfo info = getCurrentInputEditorInfo();
+        if (info == null) {
+            return true;
+        }
+        return (info.inputType & InputType.TYPE_MASK_CLASS) == InputType.TYPE_NULL;
+    }
+
+    /**
+     * Types keys directly when no text editor is focused (e.g. in Hacker's Keyboard mode,
+     * terminal emulators, DOSBox, full-screen games, or console windows).
+     */
+    private void handleNoConnectionKey(InputConnection connection, int primaryCode) {
+        if (primaryCode == Keyboard.KEYCODE_DELETE) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
+        } else if (primaryCode == 10) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER);
+        } else if (primaryCode == 32) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_SPACE);
+        } else if (primaryCode == 9) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_TAB);
+        } else if (primaryCode > 0) {
+            char ch = (char) primaryCode;
+            boolean shift = mShiftLatched || mCaps;
+            if (shift) {
+                ch = Character.toUpperCase(ch);
+            }
+            if (mCtrlLatched) {
+                int keyCode = keyCodeForChar(ch);
+                if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
+                    sendHardwareKeyWithMeta(connection, keyCode,
+                            KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+                }
+                clearLatchedModifiers();
+                updateModifierAppearance();
+            } else if (mAltLatched) {
+                int keyCode = keyCodeForChar(ch);
+                if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
+                    sendHardwareKeyWithMeta(connection, keyCode,
+                            KeyEvent.META_ALT_ON | KeyEvent.META_ALT_LEFT_ON);
+                }
+                clearLatchedModifiers();
+                updateModifierAppearance();
+            } else {
+                sendKeyChar(ch);
+                if (mShiftLatched && !mCaps) {
+                    mShiftLatched = false;
+                    mShiftWasAuto = false;
+                    updateModifierAppearance();
+                }
+            }
+        }
+    }
+
+    private int keyCodeForChar(char ch) {
+        char lower = Character.toLowerCase(ch);
+        if (lower >= 'a' && lower <= 'z') {
+            return KeyEvent.KEYCODE_A + (lower - 'a');
+        } else if (lower >= '0' && lower <= '9') {
+            return KeyEvent.KEYCODE_0 + (lower - '0');
+        } else if (lower == ' ') {
+            return KeyEvent.KEYCODE_SPACE;
+        } else if (lower == '\n') {
+            return KeyEvent.KEYCODE_ENTER;
+        } else if (lower == '\t') {
+            return KeyEvent.KEYCODE_TAB;
+        }
+        return KeyEvent.KEYCODE_UNKNOWN;
+    }
 
     private void handleCharacter(InputConnection connection, int primaryCode) {
         char typed = (char) primaryCode;

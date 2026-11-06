@@ -188,12 +188,41 @@
             android:keyTextColor="@color/key_text"
             android:keyTextSize="@dimen/key_text_size"
             android:labelTextSize="12sp"
-            android:keyPreviewLayout="@layout/keyboard_key_preview"
-            android:keyPreviewHeight="70dip"
             android:shadowColor="#00000000"
             android:shadowDx="0.0"
             android:shadowDy="0.0"
             android:shadowRadius="0.0" />
+
+        <!-- Center-aligned key preview HUD: displays all key popups in the center in appropriate place -->
+        <FrameLayout
+            android:id="@+id/center_preview_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="6dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:elevation="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/center_preview_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_center_key_preview"
+                android:gravity="center"
+                android:minWidth="76dp"
+                android:minHeight="54dp"
+                android:paddingStart="22dp"
+                android:paddingEnd="22dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="8dp"
+                android:clickable="false"
+                android:focusable="false"
+                android:textColor="@color/key_text"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/tools_panel"

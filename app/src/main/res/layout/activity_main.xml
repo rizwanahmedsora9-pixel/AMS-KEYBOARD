@@ -141,6 +141,12 @@
                         style="@style/SecondaryButton"
                         android:text="@string/setup_open_keyboard_button" />
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/button_force_show"
+                    style="@style/SecondaryButton"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/setup_force_show_button" />
             </LinearLayout>
 
             <!-- Quick Settings Tile -->
@@ -221,6 +227,10 @@
 
                 <include
                     android:id="@+id/row_notification_shortcuts"
+                    layout="@layout/item_setting_switch" />
+
+                <include
+                    android:id="@+id/row_force_keyboard_anytime"
                     layout="@layout/item_setting_switch" />
             </LinearLayout>
 

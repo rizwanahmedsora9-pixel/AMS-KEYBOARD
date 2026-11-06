@@ -18,6 +18,7 @@
     <string name="setup_needs_select">AMS Keyboard is enabled but not selected.</string>
     <string name="setup_refresh">Check again</string>
     <string name="setup_open_keyboard_button">Open a test field</string>
+    <string name="setup_force_show_button">Force-Show Keyboard (Hacker\'s Mode)</string>
     <string name="version_label">Version %1$s (build %2$d)</string>
 
     <!-- Settings groups -->
@@ -133,12 +134,16 @@
     <string name="clipboard_history_off">Clipboard history is off</string>
 
     <!-- Notification panel shortcuts & Quick tools -->
-    <string name="setting_notification_shortcuts_title">Notification panel shortcuts</string>
-    <string name="setting_notification_shortcuts_summary">Show a persistent notification so you can access shortcuts, clipboard history, and typing from any screen.</string>
+    <string name="setting_notification_shortcuts_title">Permanent notification when selected</string>
+    <string name="setting_notification_shortcuts_summary">Show a permanent notification in the status bar while AMS Keyboard is selected as your active keyboard.</string>
+    <string name="setting_force_keyboard_title">Open keyboard without text field</string>
+    <string name="setting_force_keyboard_summary">Tap notification or \"Show Keyboard\" to force AMS Keyboard open anywhere, even without a focused text box (like Hacker\'s Keyboard mode for Termux, games, consoles).</string>
     <string name="notification_channel_name">AMS Keyboard Shortcuts &amp; Tools</string>
     <string name="notification_channel_desc">Quick access to shortcuts, clipboard history, and tools from the notification drawer.</string>
     <string name="notification_title">AMS Keyboard</string>
     <string name="notification_text">Tap for quick shortcuts, clipboard &amp; tools</string>
+    <string name="notification_text_force_open">Tap to show keyboard anywhere · Shortcuts &amp; Clipboard</string>
+    <string name="notification_action_show_keyboard">Show Keyboard</string>
     <string name="notification_action_shortcuts">Shortcuts</string>
     <string name="notification_action_clipboard">Clipboard</string>
     <string name="notification_action_quick_type">Quick Type</string>
@@ -157,7 +162,9 @@
     <string name="quick_tile_label">AMS Keyboard</string>
     <string name="quick_tile_subtitle">Shortcuts &amp; Clipboard</string>
     <string name="quick_tile_active">Active · Tap for tools</string>
+    <string name="quick_tile_show_keyboard">Active · Tap to show keyboard</string>
     <string name="quick_tile_inactive">Tap to switch or open tools</string>
+    <string name="force_show_select_keyboard_hint">Select AMS Keyboard to show it anywhere</string>
     <string name="setting_group_quick_settings">Quick Settings</string>
     <string name="setting_quick_tile_title">Quick Settings panel toggle</string>
     <string name="setting_quick_tile_summary">Add an AMS Keyboard tile to your Android Quick Settings panel to access shortcuts, clipboard history, and typing from any screen.</string>

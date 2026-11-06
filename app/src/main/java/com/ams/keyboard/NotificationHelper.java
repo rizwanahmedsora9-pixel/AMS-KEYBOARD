@@ -7,12 +7,18 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.provider.Settings;
+import android.service.notification.StatusBarNotification;
+import android.view.inputmethod.InputMethodInfo;
+import android.view.inputmethod.InputMethodManager;
+
+import java.util.List;
 
 /**
- * Manages the ongoing notification for AMS Keyboard in the notification drawer.
+ * Manages the ongoing permanent notification for AMS Keyboard in the notification drawer.
  *
- * <p>Allows users to summon shortcuts, view clipboard history, and access quick typing
- * from any screen on their device.
+ * <p>Allows users to force the keyboard to open anywhere (even without a text field, like Hacker's
+ * Keyboard), summon shortcuts, and access clipboard history from any screen.
  */
 public final class NotificationHelper {
 
@@ -22,8 +28,71 @@ public final class NotificationHelper {
     private NotificationHelper() {
     }
 
+    /** Returns true if AMS Keyboard is enabled in Android's Input Method settings. */
+    public static boolean isAmsKeyboardEnabled(Context context) {
+        try {
+            InputMethodManager imm =
+                    (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm == null) {
+                return false;
+            }
+            List<InputMethodInfo> enabled = imm.getEnabledInputMethodList();
+            if (enabled == null) {
+                return false;
+            }
+            String pkg = context.getPackageName();
+            for (InputMethodInfo info : enabled) {
+                if (pkg.equals(info.getPackageName())) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /** Returns true if AMS Keyboard is currently selected as the active input method in Android. */
+    public static boolean isAmsKeyboardSelected(Context context) {
+        try {
+            String currentIme = Settings.Secure.getString(
+                    context.getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
+            return currentIme != null && currentIme.startsWith(context.getPackageName() + "/");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Posts the ongoing notification only if it is enabled in preferences and not already active
+     * in the status bar, avoiding redundant NotificationManager updates on every input bind.
+     */
+    public static void ensureNotificationShown(Context context) {
+        if (!KeyboardPreferences.isNotificationShortcutsEnabled(context)) {
+            cancelNotification(context);
+            return;
+        }
+        NotificationManager manager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager == null) {
+            return;
+        }
+        try {
+            StatusBarNotification[] active = manager.getActiveNotifications();
+            if (active != null) {
+                for (StatusBarNotification sbn : active) {
+                    if (sbn != null && sbn.getId() == NOTIFICATION_ID) {
+                        return;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        showNotification(context);
+    }
+
     public static void showNotification(Context context) {
         if (!KeyboardPreferences.isNotificationShortcutsEnabled(context)) {
+            cancelNotification(context);
             return;
         }
 
@@ -51,34 +120,30 @@ public final class NotificationHelper {
             flags |= PendingIntent.FLAG_IMMUTABLE;
         }
 
-        // Tap on notification body opens QuickToolsActivity with Shortcuts tab
-        Intent contentIntent = new Intent(context, QuickToolsActivity.class);
-        contentIntent.putExtra(QuickToolsActivity.EXTRA_TAB, QuickToolsActivity.TAB_SHORTCUTS);
-        contentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent piContent = PendingIntent.getActivity(context, 1, contentIntent, flags);
+        // Action 1: Show Keyboard anywhere (Hacker's Keyboard mode)
+        Intent showKbIntent = new Intent(context, OpenKeyboardActivity.class);
+        showKbIntent.setAction(OpenKeyboardActivity.ACTION_FORCE_SHOW_KEYBOARD);
+        showKbIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        PendingIntent piShowKeyboard = PendingIntent.getActivity(context, 1, showKbIntent, flags);
 
-        // Action: Shortcuts
+        // Action 2: Shortcuts
         Intent shortcutsIntent = new Intent(context, QuickToolsActivity.class);
         shortcutsIntent.putExtra(QuickToolsActivity.EXTRA_TAB, QuickToolsActivity.TAB_SHORTCUTS);
         shortcutsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent piShortcuts = PendingIntent.getActivity(context, 2, shortcutsIntent, flags);
 
-        // Action: Clipboard
+        // Action 3: Clipboard
         Intent clipboardIntent = new Intent(context, QuickToolsActivity.class);
         clipboardIntent.putExtra(QuickToolsActivity.EXTRA_TAB, QuickToolsActivity.TAB_CLIPBOARD);
         clipboardIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent piClipboard = PendingIntent.getActivity(context, 3, clipboardIntent, flags);
 
-        // Action: Quick Type
-        Intent typeIntent = new Intent(context, QuickToolsActivity.class);
-        typeIntent.putExtra(QuickToolsActivity.EXTRA_TAB, QuickToolsActivity.TAB_TYPE);
-        typeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent piType = PendingIntent.getActivity(context, 4, typeIntent, flags);
-
-        // Action: Settings
-        Intent settingsIntent = new Intent(context, MainActivity.class);
-        settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent piSettings = PendingIntent.getActivity(context, 5, settingsIntent, flags);
+        boolean forceAnytime = KeyboardPreferences.isForceKeyboardAnytime(context);
+        PendingIntent piContent = forceAnytime ? piShowKeyboard : piShortcuts;
+        String contentText = context.getString(
+                forceAnytime ? R.string.notification_text_force_open : R.string.notification_text);
 
         Notification.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -89,46 +154,34 @@ public final class NotificationHelper {
 
         builder.setSmallIcon(R.drawable.ic_keyboard)
                 .setContentTitle(context.getString(R.string.notification_title))
-                .setContentText(context.getString(R.string.notification_text))
+                .setContentText(contentText)
                 .setContentIntent(piContent)
-                .setOngoing(true);
+                .setOngoing(true)
+                .setOnlyAlertOnce(true);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+            builder.setCategory(Notification.CATEGORY_SERVICE);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-            builder.addAction(new Notification.Action.Builder(
-                    R.drawable.ic_shortcut,
-                    context.getString(R.string.notification_action_shortcuts),
-                    piShortcuts).build());
-            builder.addAction(new Notification.Action.Builder(
-                    R.drawable.ic_clipboard,
-                    context.getString(R.string.notification_action_clipboard),
-                    piClipboard).build());
-            builder.addAction(new Notification.Action.Builder(
-                    R.drawable.ic_keyboard,
-                    context.getString(R.string.notification_action_quick_type),
-                    piType).build());
-            builder.addAction(new Notification.Action.Builder(
-                    R.drawable.ic_settings,
-                    context.getString(R.string.notification_action_settings),
-                    piSettings).build());
-        } else {
-            builder.addAction(R.drawable.ic_shortcut,
-                    context.getString(R.string.notification_action_shortcuts), piShortcuts);
-            builder.addAction(R.drawable.ic_clipboard,
-                    context.getString(R.string.notification_action_clipboard), piClipboard);
-            builder.addAction(R.drawable.ic_keyboard,
-                    context.getString(R.string.notification_action_quick_type), piType);
-            builder.addAction(R.drawable.ic_settings,
-                    context.getString(R.string.notification_action_settings), piSettings);
-        }
+        // Standard Android notifications render up to 3 action buttons cleanly.
+        builder.addAction(new Notification.Action.Builder(
+                R.drawable.ic_keyboard,
+                context.getString(R.string.notification_action_show_keyboard),
+                piShowKeyboard).build());
+        builder.addAction(new Notification.Action.Builder(
+                R.drawable.ic_shortcut,
+                context.getString(R.string.notification_action_shortcuts),
+                piShortcuts).build());
+        builder.addAction(new Notification.Action.Builder(
+                R.drawable.ic_clipboard,
+                context.getString(R.string.notification_action_clipboard),
+                piClipboard).build());
 
         try {
             manager.notify(NOTIFICATION_ID, builder.build());
         } catch (SecurityException ignored) {
-            // Android 13+ if permission not granted yet
+            // Android 13+ if POST_NOTIFICATIONS has not been granted yet
         }
     }
 

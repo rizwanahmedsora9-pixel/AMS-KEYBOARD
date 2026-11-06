@@ -170,14 +170,30 @@ public class QuickToolsActivity extends Activity {
         if (TAB_CLIPBOARD.equals(tab)) {
             refreshClipboardList();
         } else if (TAB_TYPE.equals(tab)) {
-            mEditQuickTypeField.requestFocus();
-            mEditQuickTypeField.post(() -> {
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    imm.showSoftInput(mEditQuickTypeField, InputMethodManager.SHOW_IMPLICIT);
-                }
-            });
+            focusQuickTypeField();
         }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && TAB_TYPE.equals(mCurrentTab)) {
+            focusQuickTypeField();
+        }
+    }
+
+    private void focusQuickTypeField() {
+        if (mEditQuickTypeField == null) {
+            return;
+        }
+        mEditQuickTypeField.requestFocus();
+        mEditQuickTypeField.post(() -> {
+            InputMethodManager imm =
+                    (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(mEditQuickTypeField, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
     }
 
     // ---------------------------------------------------------------- TAB 1: Shortcuts

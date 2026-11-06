@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome adaptive-icon layer for Android 13+ themed icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.84"
+        android:scaleY="0.84">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M33.8 57.36H25.74L24.46 61H19.28L26.69 41H32.84L40.24 61H35.06ZM27.02 53.65H32.5L29.77 45.69Z M44.54 41H51.11L55.66 51.7L60.24 41H66.79V61H61.92V46.37L57.31 57.16H54.04L49.43 46.37V61H44.54Z M87.41 41.63V45.86Q85.76 45.13 84.19 44.75Q82.63 44.38 81.23 44.38Q79.38 44.38 78.5 44.88Q77.62 45.39 77.62 46.47Q77.62 47.27 78.21 47.72Q78.81 48.17 80.37 48.49L82.57 48.93Q85.91 49.6 87.31 50.97Q88.72 52.33 88.72 54.85Q88.72 58.16 86.76 59.77Q84.8 61.39 80.76 61.39Q78.86 61.39 76.95 61.03Q75.03 60.67 73.11 59.96V55.6Q75.03 56.62 76.82 57.14Q78.61 57.65 80.27 57.65Q81.96 57.65 82.85 57.09Q83.75 56.53 83.75 55.48Q83.75 54.54 83.14 54.03Q82.53 53.53 80.71 53.12L78.71 52.68Q75.71 52.04 74.33 50.63Q72.94 49.23 72.94 46.84Q72.94 43.85 74.87 42.25Q76.8 40.64 80.42 40.64Q82.06 40.64 83.8 40.89Q85.55 41.13 87.41 41.63Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M39,68.5h30a3.2,3.2 0 0 1 3.2,3.2v1.6a3.2,3.2 0 0 1 -3.2,3.2H39a3.2,3.2 0 0 1 -3.2,-3.2v-1.6a3.2,3.2 0 0 1 3.2,-3.2z" />
+    </group>
+</vector>

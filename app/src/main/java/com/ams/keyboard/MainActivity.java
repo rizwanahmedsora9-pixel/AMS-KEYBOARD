@@ -122,6 +122,22 @@ public class MainActivity extends Activity {
             Toast.makeText(this, R.string.setup_refresh, Toast.LENGTH_SHORT).show();
         });
         findViewById(R.id.button_test).setOnClickListener(view -> showTestField());
+        View forceShowBtn = findViewById(R.id.button_force_show);
+        if (forceShowBtn != null) {
+            forceShowBtn.setOnClickListener(view -> {
+                if (NotificationHelper.isAmsKeyboardEnabled(this)
+                        && NotificationHelper.isAmsKeyboardSelected(this)
+                        && AmsKeyboardService.getInstance() != null) {
+                    AmsKeyboardService.triggerForceOpenFromTrampoline(this);
+                } else {
+                    Intent intent = new Intent(this, OpenKeyboardActivity.class);
+                    intent.setAction(OpenKeyboardActivity.ACTION_FORCE_SHOW_KEYBOARD);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                }
+            });
+        }
         View addTileBtn = findViewById(R.id.button_add_quick_tile);
         if (addTileBtn != null) {
             addTileBtn.setOnClickListener(view -> requestAddQuickTile());
@@ -202,6 +218,10 @@ public class MainActivity extends Activity {
             setPill(R.string.setup_active, false);
             mEnableButton.setText(R.string.setup_enable_button);
             mSelectButton.setText(R.string.setup_select_button);
+            if (KeyboardPreferences.isNotificationShortcutsEnabled(this)) {
+                checkAndRequestNotificationPermission();
+                NotificationHelper.showNotification(this);
+            }
         } else if (enabled) {
             setPill(R.string.setup_needs_select, true);
             mSelectButton.setText(R.string.setup_select_button);
@@ -257,6 +277,10 @@ public class MainActivity extends Activity {
                 KeyboardPreferences.DEFAULT_NOTIFICATION_SHORTCUTS,
                 R.string.setting_notification_shortcuts_title,
                 R.string.setting_notification_shortcuts_summary);
+        bindSwitch(R.id.row_force_keyboard_anytime, KeyboardPreferences.KEY_FORCE_KEYBOARD_ANYTIME,
+                KeyboardPreferences.DEFAULT_FORCE_KEYBOARD_ANYTIME,
+                R.string.setting_force_keyboard_title,
+                R.string.setting_force_keyboard_summary);
     }
 
     private void bindSwitch(int rowId, String key, boolean fallback, int titleRes, int summaryRes) {
@@ -284,6 +308,12 @@ public class MainActivity extends Activity {
                 } else {
                     NotificationHelper.cancelNotification(this);
                 }
+                QuickToolsTileService.requestListeningState(this);
+            } else if (KeyboardPreferences.KEY_FORCE_KEYBOARD_ANYTIME.equals(key)) {
+                if (KeyboardPreferences.isNotificationShortcutsEnabled(this)) {
+                    NotificationHelper.showNotification(this);
+                }
+                QuickToolsTileService.requestListeningState(this);
             }
         };
         toggle.setOnCheckedChangeListener((button, checked) -> apply.run());
@@ -357,6 +387,7 @@ public class MainActivity extends Activity {
         setSwitch(R.id.row_alt_toolbar, KeyboardPreferences.isAltToolbarEnabled(this));
         setSwitch(R.id.row_clipboard_history, KeyboardPreferences.isClipboardHistoryEnabled(this));
         setSwitch(R.id.row_notification_shortcuts, KeyboardPreferences.isNotificationShortcutsEnabled(this));
+        setSwitch(R.id.row_force_keyboard_anytime, KeyboardPreferences.isForceKeyboardAnytime(this));
 
         int height = KeyboardPreferences.getKeyboardHeightPercent(this);
         mHeightSeek.setProgress(height - KeyboardPreferences.MIN_KEYBOARD_HEIGHT);
@@ -405,6 +436,10 @@ public class MainActivity extends Activity {
                         .setPositiveButton(R.string.reset, (dialog, which) -> {
                             KeyboardPreferences.resetToDefaults(this);
                             syncControlsFromPreferences();
+                            if (KeyboardPreferences.isNotificationShortcutsEnabled(this)) {
+                                NotificationHelper.showNotification(this);
+                            }
+                            QuickToolsTileService.requestListeningState(this);
                             Toast.makeText(this, R.string.setting_reset_done,
                                     Toast.LENGTH_SHORT).show();
                         })

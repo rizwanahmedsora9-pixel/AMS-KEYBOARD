@@ -7,15 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.os.Build;
-import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
 /**
- * Quick Settings tile in the Android notification panel shade for fast access to AMS Keyboard tools.
+ * Quick Settings tile in the Android notification panel shade for fast access to AMS Keyboard.
  *
- * <p>Acts as an active/inactive toggle showing current AMS Keyboard status, and allows users
- * to summon shortcuts, clipboard history, or quick typing globally from any screen.
+ * <p>Shows current AMS Keyboard active status and collapses the notification shade to force-open
+ * AMS Keyboard anywhere (when enabled) or open Quick Tools.
  */
 @TargetApi(Build.VERSION_CODES.N)
 public class QuickToolsTileService extends TileService {
@@ -32,35 +31,30 @@ public class QuickToolsTileService extends TileService {
             return;
         }
 
-        boolean isSelected = isAmsSelected();
+        boolean isSelected = NotificationHelper.isAmsKeyboardSelected(this);
+        boolean forceAnytime = KeyboardPreferences.isForceKeyboardAnytime(this);
         tile.setState(isSelected ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
         tile.setIcon(Icon.createWithResource(this, R.drawable.ic_keyboard));
         tile.setLabel(getString(R.string.quick_tile_label));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            tile.setSubtitle(isSelected
-                    ? getString(R.string.quick_tile_active)
-                    : getString(R.string.quick_tile_inactive));
+            if (isSelected) {
+                tile.setSubtitle(getString(forceAnytime
+                        ? R.string.quick_tile_show_keyboard
+                        : R.string.quick_tile_active));
+            } else {
+                tile.setSubtitle(getString(R.string.quick_tile_inactive));
+            }
         }
 
         tile.updateTile();
-    }
-
-    private boolean isAmsSelected() {
-        try {
-            String selectedId = Settings.Secure.getString(
-                    getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
-            return selectedId != null && selectedId.startsWith(getPackageName() + "/");
-        } catch (Exception ignored) {
-            return false;
-        }
     }
 
     @Override
     public void onClick() {
         super.onClick();
 
-        Runnable action = this::launchQuickTools;
+        Runnable action = this::handleTileAction;
         if (isLocked()) {
             unlockAndRun(action);
         } else {
@@ -68,13 +62,22 @@ public class QuickToolsTileService extends TileService {
         }
     }
 
-    private void launchQuickTools() {
-        Intent intent = new Intent(this, QuickToolsActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    private void handleTileAction() {
+        Intent intent;
+        if (KeyboardPreferences.isForceKeyboardAnytime(this)) {
+            intent = new Intent(this, OpenKeyboardActivity.class);
+            intent.setAction(OpenKeyboardActivity.ACTION_FORCE_SHOW_KEYBOARD);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        } else {
+            intent = new Intent(this, QuickToolsActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             PendingIntent pi = PendingIntent.getActivity(
-                    this, 0, intent,
+                    this, 10, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             startActivityAndCollapse(pi);
         } else {
@@ -89,7 +92,8 @@ public class QuickToolsTileService extends TileService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             try {
                 TileService.requestListeningState(context.getApplicationContext(),
-                        new ComponentName(context.getApplicationContext(), QuickToolsTileService.class));
+                        new ComponentName(context.getApplicationContext(),
+                                QuickToolsTileService.class));
             } catch (Exception ignored) {
             }
         }
