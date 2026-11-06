@@ -1,0 +1,19 @@
+package com.ams.keyboard;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+
+/**
+ * Ensures the AMS Keyboard notification panel shortcut is restored after device reboot.
+ */
+public class BootReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            if (KeyboardPreferences.isNotificationShortcutsEnabled(context)) {
+                NotificationHelper.showNotification(context);
+            }
+        }
+    }
+}

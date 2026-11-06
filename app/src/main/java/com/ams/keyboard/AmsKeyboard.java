@@ -25,7 +25,7 @@ import java.util.List;
 final class AmsKeyboard extends Keyboard {
 
     /** Key height declared by the XML layouts; 100% of the height setting means this value. */
-    static final int BASE_KEY_HEIGHT_DP = 49;
+    static final int BASE_KEY_HEIGHT_DP = 45;
 
     private int mAppliedKeyHeight;
     /** Gap between rows in pixels; set from the "Row spacing" setting. */

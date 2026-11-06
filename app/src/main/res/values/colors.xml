@@ -18,6 +18,16 @@
     <color name="clipboard_text">#39474D</color>
     <color name="clipboard_secondary_text">#6E7B81</color>
 
+    <!-- Mechanical Keycap styling colors -->
+    <color name="mech_plate_background">#121A1E</color>
+    <color name="mech_key_face">#2C3940</color>
+    <color name="mech_key_face_pressed">#1E272C</color>
+    <color name="mech_key_shadow">#0E1417</color>
+    <color name="mech_key_highlight">#42535C</color>
+    <color name="mech_key_highlight_pressed">#263339</color>
+    <color name="mech_key_accent_face">#1B4742</color>
+    <color name="mech_key_accent_pressed">#133632</color>
+
     <!-- Settings screen -->
     <color name="settings_background">#0F191D</color>
     <color name="settings_surface">#182327</color>

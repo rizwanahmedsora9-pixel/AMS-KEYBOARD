@@ -11,11 +11,11 @@ android {
     // which is the reason updates were rejected with "App not installed").
     // This key is public knowledge by design: it only signs debug builds, never a release.
     signingConfigs {
-        debug {
-            storeFile file('../keystore/ams-debug.jks')
-            storePassword 'amskeyboard'
-            keyAlias 'amsdebug'
-            keyPassword 'amskeyboard'
+        debugConfig {
+            storeFile file("${rootDir}/debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
         }
     }
 
@@ -37,8 +37,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            // The shared signing config above is what makes every debug APK install over the
-            // previous one.
+            signingConfig signingConfigs.debugConfig
             versionNameSuffix "-debug"
         }
     }

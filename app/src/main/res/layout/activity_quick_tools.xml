@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Header bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/quick_tools_dialog_title"
+            android:src="@drawable/ic_shortcut" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:text="@string/quick_tools_dialog_title"
+            android:textColor="@color/settings_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_switch_ime"
+            style="@android:style/Widget.Material.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/switch_keyboard_btn"
+            android:textAllCaps="false"
+            android:textColor="@color/ime_accent"
+            android:textSize="12sp" />
+
+        <ImageButton
+            android:id="@+id/btn_close_dialog"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close"
+            android:src="@drawable/ic_delete" />
+    </LinearLayout>
+
+    <!-- Tab bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tab_shortcuts"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_selected"
+            android:gravity="center"
+            android:text="@string/quick_tools_shortcuts_tab"
+            android:textColor="@color/settings_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tab_clipboard"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_unselected"
+            android:gravity="center"
+            android:text="@string/quick_tools_clipboard_tab"
+            android:textColor="@color/settings_text_secondary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tab_quick_type"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_unselected"
+            android:gravity="center"
+            android:text="@string/quick_tools_type_tab"
+            android:textColor="@color/settings_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- TAB 1: SHORTCUTS -->
+    <LinearLayout
+        android:id="@+id/container_shortcuts"
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <!-- Compact field to run shortcuts on immediately -->
+        <EditText
+            android:id="@+id/edit_shortcut_field"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_edit_text_dark"
+            android:hint="@string/quick_type_hint"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:singleLine="true"
+            android:textColor="@color/settings_text_primary"
+            android:textColorHint="@color/key_hint"
+            android:textSize="14sp" />
+
+        <!-- Shortcut Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_sc_copy_all"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_copy_all"
+                android:textAllCaps="false"
+                android:textColor="@color/ime_accent"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_sc_paste"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_paste"
+                android:textAllCaps="false"
+                android:textColor="@color/ime_accent"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_sc_select_all"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_select_all"
+                android:textAllCaps="false"
+                android:textColor="@color/ime_accent"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_sc_clear"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_clear"
+                android:textAllCaps="false"
+                android:textColor="@color/danger"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Grid of shortcut buttons -->
+        <GridView
+            android:id="@+id/grid_shortcuts"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:horizontalSpacing="4dp"
+            android:numColumns="4"
+            android:verticalSpacing="4dp" />
+    </LinearLayout>
+
+    <!-- TAB 2: CLIPBOARD -->
+    <LinearLayout
+        android:id="@+id/container_clipboard"
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/edit_clipboard_search"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_edit_text_dark"
+                android:hint="@string/clipboard_search_hint"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:singleLine="true"
+                android:textColor="@color/settings_text_primary"
+                android:textColorHint="@color/key_hint"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btn_clipboard_clear_all"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:text="@string/reset"
+                android:textAllCaps="false"
+                android:textColor="@color/danger"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_clipboard_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="@string/clipboard_empty"
+            android:textColor="@color/settings_text_secondary"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/list_clipboard_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- TAB 3: QUICK TYPE -->
+    <LinearLayout
+        android:id="@+id/container_quick_type"
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/edit_quick_type_field"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_edit_text_dark"
+            android:gravity="top|start"
+            android:hint="@string/quick_type_hint"
+            android:padding="14dp"
+            android:textColor="@color/settings_text_primary"
+            android:textColorHint="@color/key_hint"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_type_copy_and_exit"
+                style="@style/PrimaryButton"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1.4"
+                android:text="@string/quick_type_copy_and_exit"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btn_type_copy"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_copy_all"
+                android:textAllCaps="false"
+                android:textColor="@color/ime_accent"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btn_type_paste"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_paste"
+                android:textAllCaps="false"
+                android:textColor="@color/ime_accent"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btn_type_clear"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="0.8"
+                android:background="@drawable/bg_secondary_button"
+                android:text="@string/quick_type_clear"
+                android:textAllCaps="false"
+                android:textColor="@color/danger"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

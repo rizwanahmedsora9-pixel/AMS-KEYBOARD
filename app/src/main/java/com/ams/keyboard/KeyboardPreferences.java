@@ -26,6 +26,7 @@ final class KeyboardPreferences {
     static final String KEY_CLIPBOARD_HISTORY = "clipboard_history_enabled";
     static final String KEY_CLIPBOARD_LIMIT = "clipboard_history_limit";
     static final String KEY_ALT_TOOLBAR = "alt_shortcuts_toolbar_enabled";
+    static final String KEY_NOTIFICATION_SHORTCUTS = "notification_shortcuts_enabled";
 
     static final boolean DEFAULT_AUTO_CORRECT = true;
     static final boolean DEFAULT_SUGGESTIONS = true;
@@ -37,6 +38,7 @@ final class KeyboardPreferences {
     static final boolean DEFAULT_LONG_PRESS_SYMBOLS = true;
     static final boolean DEFAULT_CLIPBOARD_HISTORY = true;
     static final boolean DEFAULT_ALT_TOOLBAR = false;
+    static final boolean DEFAULT_NOTIFICATION_SHORTCUTS = true;
 
     /** 100 means "the height the layout asks for". */
     static final int DEFAULT_KEYBOARD_HEIGHT = 100;
@@ -122,6 +124,10 @@ final class KeyboardPreferences {
         return getBoolean(context, KEY_ALT_TOOLBAR, DEFAULT_ALT_TOOLBAR);
     }
 
+    static boolean isNotificationShortcutsEnabled(Context context) {
+        return getBoolean(context, KEY_NOTIFICATION_SHORTCUTS, DEFAULT_NOTIFICATION_SHORTCUTS);
+    }
+
     /** Restores every option to its default. Clipboard contents are intentionally untouched. */
     static void resetToDefaults(Context context) {
         SharedPreferences.Editor editor = get(context).edit();
@@ -138,6 +144,7 @@ final class KeyboardPreferences {
         editor.putBoolean(KEY_CLIPBOARD_HISTORY, DEFAULT_CLIPBOARD_HISTORY);
         editor.putInt(KEY_CLIPBOARD_LIMIT, DEFAULT_CLIPBOARD_LIMIT);
         editor.putBoolean(KEY_ALT_TOOLBAR, DEFAULT_ALT_TOOLBAR);
+        editor.putBoolean(KEY_NOTIFICATION_SHORTCUTS, DEFAULT_NOTIFICATION_SHORTCUTS);
         editor.apply();
     }
 

@@ -143,6 +143,28 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Quick Settings Tile -->
+            <TextView
+                style="@style/SectionTitle"
+                android:text="@string/setting_group_quick_settings" />
+
+            <LinearLayout
+                style="@style/Card">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/setting_quick_tile_title" />
+
+                <TextView
+                    style="@style/SettingSummary"
+                    android:text="@string/setting_quick_tile_summary" />
+
+                <Button
+                    android:id="@+id/button_add_quick_tile"
+                    style="@style/PrimaryButton"
+                    android:text="@string/setting_quick_tile_button" />
+            </LinearLayout>
+
             <!-- Typing -->
             <TextView
                 style="@style/SectionTitle"
@@ -195,6 +217,10 @@
 
                 <include
                     android:id="@+id/row_alt_toolbar"
+                    layout="@layout/item_setting_switch" />
+
+                <include
+                    android:id="@+id/row_notification_shortcuts"
                     layout="@layout/item_setting_switch" />
             </LinearLayout>
 

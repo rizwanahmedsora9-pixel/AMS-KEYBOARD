@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!--
       Update behaviour: the applicationId (com.ams.keyboard) and the signing key never change
       between builds, and versionCode always increases, so Android installs every new APK as an
@@ -28,6 +32,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Floating Quick Tools dialog summoned from notification panel or quick settings -->
+        <activity
+            android:name=".QuickToolsActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:label="@string/quick_tools_dialog_title"
+            android:launchMode="singleInstance"
+            android:theme="@style/QuickToolsDialogTheme"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
+
         <!-- AMS Keyboard input method service. No ads, no third-party icons. -->
         <service
             android:name=".AmsKeyboardService"
@@ -41,6 +55,31 @@
                 android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
+
+        <!-- Quick Settings tile in the notification shade -->
+        <service
+            android:name=".QuickToolsTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_keyboard"
+            android:label="@string/quick_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+        </service>
+
+        <!-- Boot receiver to restore persistent notification on reboot -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

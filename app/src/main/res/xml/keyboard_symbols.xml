@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Symbols / numbers layout. "ABC" returns to the letters layout. 16+10+9+8+28+8+9+12 = 100%
+  Symbols and numbers layout with comprehensive symbol coverage.
+
+  Row 1: Numbers (1 2 3 4 5 6 7 8 9 0).
+  Row 2: Math and Currency (+ - × ÷ = % $ € £ ¥).
+  Row 3: Punctuation and Web (@ # _ | \ / ~ ^ & *).
+  Row 4: Brackets and Quotes (( ) [ ] { } < > ⌫).
+  Row 5: ABC, Ctrl, Alt, ", Space, ', :, Enter.
 -->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="10%p"
-    android:keyHeight="49dp"
+    android:keyHeight="45dp"
     android:horizontalGap="0dp"
     android:verticalGap="3dp">
 
+    <!-- Row 1: Numbers -->
     <Row>
         <Key android:codes="49" android:keyLabel="1" android:popupCharacters="!" android:keyEdgeFlags="left" />
         <Key android:codes="50" android:keyLabel="2" android:popupCharacters="@" />
@@ -21,42 +28,57 @@
         <Key android:codes="48" android:keyLabel="0" android:popupCharacters=")" android:keyEdgeFlags="right" />
     </Row>
 
+    <!-- Row 2: Math & Currency -->
     <Row>
-        <Key android:codes="64" android:keyLabel="@" android:popupCharacters="~" android:keyEdgeFlags="left" />
-        <Key android:codes="35" android:keyLabel="#" android:popupCharacters="|" />
-        <Key android:codes="36" android:keyLabel="$" android:popupCharacters="£" />
-        <Key android:codes="37" android:keyLabel="%" android:popupCharacters="€" />
-        <Key android:codes="38" android:keyLabel="&amp;" android:popupCharacters="¥" />
-        <Key android:codes="45" android:keyLabel="-" android:popupCharacters="–" />
-        <Key android:codes="43" android:keyLabel="+" android:popupCharacters="±" />
-        <Key android:codes="40" android:keyLabel="(" android:popupCharacters="{" />
-        <Key android:codes="41" android:keyLabel=")" android:popupCharacters="}" />
-        <Key android:codes="47" android:keyLabel="/" android:popupCharacters="\\" android:keyEdgeFlags="right" />
+        <Key android:codes="43" android:keyLabel="+" android:popupCharacters="±" android:keyEdgeFlags="left" />
+        <Key android:codes="45" android:keyLabel="-" android:popupCharacters="–—" />
+        <Key android:codes="215" android:keyLabel="×" android:popupCharacters="*" />
+        <Key android:codes="247" android:keyLabel="÷" android:popupCharacters="/" />
+        <Key android:codes="61" android:keyLabel="=" android:popupCharacters="≠≈" />
+        <Key android:codes="37" android:keyLabel="%" android:popupCharacters="‰" />
+        <Key android:codes="36" android:keyLabel="$" android:popupCharacters="¢" />
+        <Key android:codes="8364" android:keyLabel="€" />
+        <Key android:codes="163" android:keyLabel="£" />
+        <Key android:codes="165" android:keyLabel="¥" android:popupCharacters="₹₽" android:keyEdgeFlags="right" />
     </Row>
 
+    <!-- Row 3: Punctuation, Slashes, and Symbols -->
     <Row>
-        <Key android:codes="61" android:keyLabel="=" android:popupCharacters="≠" android:keyEdgeFlags="left" />
-        <Key android:codes="42" android:keyLabel="*" android:popupCharacters="•" />
-        <Key android:codes="34" android:keyLabel="&quot;" android:popupCharacters="&quot;&quot;" />
-        <Key android:codes="39" android:keyLabel="'" android:popupCharacters="’" />
-        <Key android:codes="58" android:keyLabel=":" android:popupCharacters="·" />
-        <Key android:codes="59" android:keyLabel=";" android:popupCharacters="…" />
-        <Key android:codes="33" android:keyLabel="!" android:popupCharacters="¡" />
-        <Key android:codes="63" android:keyLabel="?" android:popupCharacters="¿" />
-        <Key android:codes="91" android:keyLabel="[" android:popupCharacters="&lt;" />
-        <Key android:codes="93" android:keyLabel="]" android:popupCharacters="&gt;" android:keyEdgeFlags="right" />
+        <Key android:codes="64" android:keyLabel="@" android:popupCharacters="•" android:keyEdgeFlags="left" />
+        <Key android:codes="35" android:keyLabel="#" android:popupCharacters="№" />
+        <Key android:codes="95" android:keyLabel="_" />
+        <Key android:codes="124" android:keyLabel="|" android:popupCharacters="¦" />
+        <Key android:codes="92" android:keyLabel="\\" />
+        <Key android:codes="47" android:keyLabel="/" />
+        <Key android:codes="126" android:keyLabel="~" android:popupCharacters="`" />
+        <Key android:codes="94" android:keyLabel="^" android:popupCharacters="°" />
+        <Key android:codes="38" android:keyLabel="&amp;" android:popupCharacters="§" />
+        <Key android:codes="42" android:keyLabel="*" android:popupCharacters="©®™" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- Bottom row keeps the same modifier column so Ctrl+C / Alt+Tab stay reachable. -->
+    <!-- Row 4: Brackets and Backspace -->
+    <Row>
+        <Key android:codes="40" android:keyLabel="(" android:popupCharacters="«" android:keyWidth="10.93%p" android:keyEdgeFlags="left" />
+        <Key android:codes="41" android:keyLabel=")" android:popupCharacters="»" android:keyWidth="10.93%p" />
+        <Key android:codes="91" android:keyLabel="[" android:popupCharacters="“" android:keyWidth="10.93%p" />
+        <Key android:codes="93" android:keyLabel="]" android:popupCharacters="”" android:keyWidth="10.93%p" />
+        <Key android:codes="123" android:keyLabel="{" android:popupCharacters="‘" android:keyWidth="10.93%p" />
+        <Key android:codes="125" android:keyLabel="}" android:popupCharacters="’" android:keyWidth="10.93%p" />
+        <Key android:codes="60" android:keyLabel="&lt;" android:popupCharacters="≤" android:keyWidth="11%p" />
+        <Key android:codes="62" android:keyLabel="&gt;" android:popupCharacters="≥" android:keyWidth="11%p" />
+        <Key android:codes="-5" android:keyIcon="@drawable/ic_backspace_wide" android:keyLabel="⌫"
+            android:keyWidth="12.5%p" android:isRepeatable="true" android:keyEdgeFlags="right" />
+    </Row>
+
+    <!-- Row 5: Bottom row keeps modifiers reachable -->
     <Row>
         <Key android:codes="-100" android:keyLabel="ABC" android:keyWidth="16%p" android:keyEdgeFlags="left" />
         <Key android:codes="1001" android:keyLabel="Ctrl" android:keyWidth="10%p" android:isModifier="true" />
         <Key android:codes="1002" android:keyLabel="Alt" android:keyWidth="9%p" android:isModifier="true" />
-        <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p" />
+        <Key android:codes="34" android:keyLabel="&quot;" android:popupCharacters="“„" android:keyWidth="8%p" />
         <Key android:codes="32" android:keyLabel="English (US)" android:keyWidth="28%p" />
-        <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p" />
-        <Key android:codes="-5" android:keyIcon="@drawable/ic_backspace_wide" android:keyLabel="⌫"
-            android:keyWidth="9%p" android:isRepeatable="true" />
+        <Key android:codes="39" android:keyLabel="'" android:popupCharacters="’" android:keyWidth="8%p" />
+        <Key android:codes="58" android:keyLabel=":" android:popupCharacters=";…" android:keyWidth="9%p" />
         <Key android:codes="10" android:keyIcon="@drawable/ic_enter" android:keyLabel="↵"
             android:keyWidth="12%p" android:keyEdgeFlags="right" />
     </Row>

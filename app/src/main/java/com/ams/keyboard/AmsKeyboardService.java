@@ -17,6 +17,8 @@ import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.InputDevice;
+import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,6 +35,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -171,6 +174,9 @@ public class AmsKeyboardService extends InputMethodService
         mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         readPreferences();
         KeyboardPreferences.get(this).registerOnSharedPreferenceChangeListener(mPreferenceListener);
+        if (KeyboardPreferences.isNotificationShortcutsEnabled(this)) {
+            NotificationHelper.showNotification(this);
+        }
     }
 
     @Override
@@ -217,7 +223,7 @@ public class AmsKeyboardService extends InputMethodService
         applyPreferencesToViews();
         // Panels sit on top of the keyboard inside this frame; keep its height stable.
         if (mKeyboardArea != null) {
-            mKeyboardArea.setMinimumHeight(dp(4 * 49 + 3 * 3 + 8));
+            mKeyboardArea.setMinimumHeight(dp(5 * 45 + 4 * 3 + 8));
         }
         showKeyboardPanel();
         return mRootView;
@@ -673,32 +679,31 @@ public class AmsKeyboardService extends InputMethodService
         }
         switch (shortcut) {
             case SHORTCUT_SELECT_ALL:
-                sendControlKey(connection, mCtrlLatched, KeyEvent.KEYCODE_A);
-                mCtrlLatched = false;
+                handleSelectAll(connection);
                 break;
             case SHORTCUT_COPY:
-                connection.performContextMenuAction(android.R.id.copy);
+                handleCopy(connection);
                 break;
             case SHORTCUT_CUT:
-                connection.performContextMenuAction(android.R.id.cut);
+                handleCut(connection);
                 break;
             case SHORTCUT_PASTE:
-                pasteClipboard(connection);
+                handlePaste(connection);
                 break;
             case SHORTCUT_UNDO:
-                sendControlKey(connection, true, KeyEvent.KEYCODE_Z);
+                handleUndo(connection);
                 break;
             case SHORTCUT_REDO:
-                sendControlKey(connection, true, KeyEvent.KEYCODE_Y);
+                handleRedo(connection);
                 break;
             case SHORTCUT_COPY_ALL:
                 copyAllText(connection);
                 break;
             case SHORTCUT_MOVE_START:
-                sendControlKey(connection, true, KeyEvent.KEYCODE_MOVE_HOME);
+                handleMoveStart(connection);
                 break;
             case SHORTCUT_MOVE_END:
-                sendControlKey(connection, true, KeyEvent.KEYCODE_MOVE_END);
+                handleMoveEnd(connection);
                 break;
             case SHORTCUT_SELECT_WORD:
                 selectWordAtCursor(connection);
@@ -713,12 +718,43 @@ public class AmsKeyboardService extends InputMethodService
         showKeyboardPanel();
     }
 
+    private boolean isTerminalOrConsole() {
+        EditorInfo info = getCurrentInputEditorInfo();
+        if (info == null) {
+            return false;
+        }
+        if (info.inputType == android.text.InputType.TYPE_NULL) {
+            return true;
+        }
+        String pkg = info.packageName;
+        if (pkg != null) {
+            String lower = pkg.toLowerCase(Locale.US);
+            if (lower.contains("term") || lower.contains("console") || lower.contains("shell")
+                    || lower.contains("ssh") || lower.contains("python") || lower.contains("pydroid")
+                    || lower.contains("bash") || lower.contains("connectbot") || lower.contains("juicessh")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void sendHardwareKeyWithMeta(InputConnection connection, int keyCode, int meta) {
+        long now = SystemClock.uptimeMillis();
+        KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0, meta,
+                KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+                KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE,
+                InputDevice.SOURCE_KEYBOARD);
+        KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0, meta,
+                KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+                KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE,
+                InputDevice.SOURCE_KEYBOARD);
+        connection.sendKeyEvent(down);
+        connection.sendKeyEvent(up);
+    }
+
     private void sendControlKey(InputConnection connection, boolean withControl, int keyCode) {
         int meta = withControl ? KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON : 0;
-        connection.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(),
-                SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, keyCode, 0, meta));
-        connection.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(),
-                SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, keyCode, 0, meta));
+        sendHardwareKeyWithMeta(connection, keyCode, meta);
     }
 
     private void sendAltKey(InputConnection connection, char letter) {
@@ -727,65 +763,219 @@ public class AmsKeyboardService extends InputMethodService
             return;
         }
         int meta = KeyEvent.META_ALT_ON | KeyEvent.META_ALT_LEFT_ON;
-        connection.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(),
-                SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, keyCode, 0, meta));
-        connection.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(),
-                SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, keyCode, 0, meta));
+        sendHardwareKeyWithMeta(connection, keyCode, meta);
     }
 
-    /**
-     * Copies the entire field.
-     *
-     * <p>Reading through {@link #getAllEditorText()} does not need a selection, so this works even
-     * when the app never highlighted anything. The full string is put on the clipboard, which is
-     * the "unlimited copy" behaviour a real PC has with Ctrl+A then Ctrl+C.
-     */
+    private void handleSelectAll(InputConnection connection) {
+        if (connection == null) return;
+        try {
+            connection.performContextMenuAction(android.R.id.selectAll);
+        } catch (Exception ignored) {
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_A,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+        try {
+            ExtractedText ext = connection.getExtractedText(new ExtractedTextRequest(), 0);
+            if (ext != null && ext.text != null && ext.text.length() > 0) {
+                connection.setSelection(0, ext.text.length());
+            } else {
+                CharSequence before = connection.getTextBeforeCursor(10000, 0);
+                CharSequence after = connection.getTextAfterCursor(10000, 0);
+                int totalLen = (before != null ? before.length() : 0) + (after != null ? after.length() : 0);
+                if (totalLen > 0) {
+                    connection.setSelection(0, totalLen);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        if (isTerminalOrConsole()) {
+            connection.commitText("\u0001", 1);
+        }
+    }
+
+    private void handleCopy(InputConnection connection) {
+        if (connection == null) return;
+        CharSequence selected = null;
+        try {
+            selected = connection.getSelectedText(0);
+        } catch (Exception ignored) {
+        }
+        if (!TextUtils.isEmpty(selected)) {
+            copyStringToClipboard(selected.toString());
+            toast(getString(R.string.tool_copy_selection_done, selected.length()));
+            return;
+        }
+
+        boolean menuCopied = false;
+        try {
+            menuCopied = connection.performContextMenuAction(android.R.id.copy);
+        } catch (Exception ignored) {
+        }
+
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_C,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+
+        if (isTerminalOrConsole()) {
+            // In terminal environments, Ctrl+C sends interrupt signal (SIGINT)
+            connection.commitText("\u0003", 1);
+        } else if (!menuCopied) {
+            String all = getAllEditorText(connection);
+            if (!TextUtils.isEmpty(all)) {
+                copyStringToClipboard(all);
+                toast(getString(R.string.tool_copy_all_done, all.length()));
+            } else {
+                toast(getString(R.string.copy_failed));
+            }
+        }
+    }
+
+    private void handleCut(InputConnection connection) {
+        if (connection == null) return;
+        CharSequence selected = null;
+        try {
+            selected = connection.getSelectedText(0);
+        } catch (Exception ignored) {
+        }
+        if (!TextUtils.isEmpty(selected)) {
+            copyStringToClipboard(selected.toString());
+            connection.commitText("", 1);
+            return;
+        }
+        try {
+            connection.performContextMenuAction(android.R.id.cut);
+        } catch (Exception ignored) {
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_X,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+    }
+
+    private void handlePaste(InputConnection connection) {
+        if (connection == null) return;
+        String text = getPrimaryClipboardText();
+        if (!TextUtils.isEmpty(text)) {
+            commitTextInChunks(connection, text);
+        } else {
+            try {
+                connection.performContextMenuAction(android.R.id.paste);
+            } catch (Exception ignored) {
+            }
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_V,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+    }
+
+    private void handleUndo(InputConnection connection) {
+        if (connection == null) return;
+        try {
+            connection.performContextMenuAction(android.R.id.undo);
+        } catch (Exception ignored) {
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_Z,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+    }
+
+    private void handleRedo(InputConnection connection) {
+        if (connection == null) return;
+        try {
+            connection.performContextMenuAction(android.R.id.redo);
+        } catch (Exception ignored) {
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_Y,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+    }
+
+    private void handleMoveStart(InputConnection connection) {
+        if (connection == null) return;
+        if (isTerminalOrConsole()) {
+            connection.commitText("\u0001", 1);
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_MOVE_HOME,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+    }
+
+    private void handleMoveEnd(InputConnection connection) {
+        if (connection == null) return;
+        if (isTerminalOrConsole()) {
+            connection.commitText("\u0005", 1);
+        }
+        sendHardwareKeyWithMeta(connection, KeyEvent.KEYCODE_MOVE_END,
+                KeyEvent.META_CTRL_ON | KeyEvent.META_CTRL_LEFT_ON);
+    }
+
+    private void copyStringToClipboard(String text) {
+        if (mClipboardManager == null || TextUtils.isEmpty(text)) {
+            return;
+        }
+        try {
+            mClipboardManager.setPrimaryClip(ClipData.newPlainText("AMS Keyboard", text));
+        } catch (RuntimeException ignored) {
+        }
+    }
+
     private void copyAllText(InputConnection connection) {
         String all = getAllEditorText(connection);
         if (TextUtils.isEmpty(all)) {
             toast(getString(R.string.tool_copy_all_empty));
             return;
         }
-        if (mClipboardManager == null) {
-            toast(getString(R.string.copy_failed));
-            return;
-        }
-        try {
-            mClipboardManager.setPrimaryClip(ClipData.newPlainText("AMS Keyboard", all));
-            // The clipboard listener stores it in history as well, so it can be pasted later.
-            toast(getString(R.string.tool_copy_all_done, all.length()));
-        } catch (RuntimeException ignored) {
-            toast(getString(R.string.copy_failed));
-        }
+        copyStringToClipboard(all);
+        toast(getString(R.string.tool_copy_all_done, all.length()));
     }
 
     private String getAllEditorText(InputConnection connection) {
-        ExtractedText extracted = connection.getExtractedText(
-                new ExtractedTextRequest(), 0);
-        if (extracted != null && extracted.text != null && extracted.text.length() > 0) {
-            return extracted.text.toString();
+        try {
+            ExtractedText extracted = connection.getExtractedText(
+                    new ExtractedTextRequest(), 0);
+            if (extracted != null && extracted.text != null && extracted.text.length() > 0) {
+                return extracted.text.toString();
+            }
+        } catch (Exception ignored) {
         }
-        android.view.inputmethod.SurroundingText surrounding = connection.getSurroundingText(
-                Integer.MAX_VALUE / 2, Integer.MAX_VALUE / 2, 0);
-        return surrounding == null ? null : surrounding.getText().toString();
+        try {
+            android.view.inputmethod.SurroundingText surrounding = connection.getSurroundingText(
+                    10000, 10000, 0);
+            if (surrounding != null && surrounding.getText() != null) {
+                return surrounding.getText().toString();
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            CharSequence before = connection.getTextBeforeCursor(10000, 0);
+            CharSequence after = connection.getTextAfterCursor(10000, 0);
+            if (before != null || after != null) {
+                StringBuilder sb = new StringBuilder();
+                if (before != null) sb.append(before);
+                if (after != null) sb.append(after);
+                if (sb.length() > 0) return sb.toString();
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     private void selectWordAtCursor(InputConnection connection) {
-        CharSequence before = connection.getTextBeforeCursor(48, 0);
-        CharSequence after = connection.getTextAfterCursor(48, 0);
-        String left = before == null ? "" : before.toString();
-        String right = after == null ? "" : after.toString();
-        int start = left.length();
-        while (start > 0 && !isWordSeparator(left.charAt(start - 1))) {
-            start--;
+        if (connection == null) return;
+        ExtractedText extracted = null;
+        try {
+            extracted = connection.getExtractedText(new ExtractedTextRequest(), 0);
+        } catch (Exception ignored) {
         }
-        int end = 0;
-        while (end < right.length() && !isWordSeparator(right.charAt(end))) {
-            end++;
+        if (extracted != null && extracted.text != null) {
+            int cursor = extracted.selectionStart;
+            String text = extracted.text.toString();
+            if (cursor >= 0 && cursor <= text.length()) {
+                int start = cursor;
+                while (start > 0 && !isWordSeparator(text.charAt(start - 1))) {
+                    start--;
+                }
+                int end = cursor;
+                while (end < text.length() && !isWordSeparator(text.charAt(end))) {
+                    end++;
+                }
+                connection.setSelection(start, end);
+                return;
+            }
         }
-        int selectionStart = start - left.length();
-        int selectionEnd = end;
-        connection.setSelection(selectionStart, selectionEnd);
     }
 
     private static boolean isWordSeparator(char value) {
@@ -1118,7 +1308,8 @@ public class AmsKeyboardService extends InputMethodService
             // plain text too, but don't create another item if it is already the newest one.
             capturePrimaryClipboard(true);
         }
-        if (mAutoCapitalizeEnabled && isCaretAtFieldStart()) {
+        InputConnection connection = getCurrentInputConnection();
+        if (mAutoCapitalizeEnabled && connection != null && shouldAutoCapitalize(connection)) {
             applyAutoShift(true);
         }
     }
@@ -1167,6 +1358,11 @@ public class AmsKeyboardService extends InputMethodService
         }
         readPreferences();
         applyPreferencesToViews();
+        if (KeyboardPreferences.isNotificationShortcutsEnabled(this)) {
+            NotificationHelper.showNotification(this);
+        } else {
+            NotificationHelper.cancelNotification(this);
+        }
     }
 
     // ---------------------------------------------------------------- key handling
@@ -1257,20 +1453,29 @@ public class AmsKeyboardService extends InputMethodService
 
     // ---------------------------------------------------------------- modifiers
 
+    private static final long SHIFT_DOUBLE_TAP_TIMEOUT = 500;
+
     private void handleShiftKey() {
         long now = SystemClock.uptimeMillis();
-        boolean doubleTap = now - mLastShiftTapAt < 320 && mShiftLatched;
+        long interval = now - mLastShiftTapAt;
         mLastShiftTapAt = now;
-        if (doubleTap) {
-            // Double tap locks caps, like a PC keyboard.
+
+        if (mCaps) {
+            // If already in Caps Lock, any shift tap unlocks it
+            mCaps = false;
+            mShiftLatched = false;
+        } else if (interval > 40 && interval < SHIFT_DOUBLE_TAP_TIMEOUT) {
+            // Double tap within 500ms locks Caps Lock
             mCaps = true;
             mShiftLatched = true;
         } else if (mShiftLatched) {
-            // An automatic (sentence-start) shift is cancelled by the first tap without locking.
+            // Tap while shifted cancels one-shot shift
             mShiftLatched = false;
             mCaps = false;
         } else {
+            // First tap activates one-shot shift
             mShiftLatched = true;
+            mCaps = false;
         }
         mShiftWasAuto = false;
         updateModifierAppearance();
@@ -1298,6 +1503,49 @@ public class AmsKeyboardService extends InputMethodService
 
     /** Sends the key the user tapped with the latched Ctrl/Alt meta state applied. */
     private void sendLatchedModifierKey(InputConnection connection, int primaryCode) {
+        char ch = Character.toLowerCase((char) primaryCode);
+        boolean isTerminal = isTerminalOrConsole();
+
+        if (mCtrlLatched) {
+            if (ch == 'a') {
+                handleSelectAll(connection);
+                clearLatchedModifiers();
+                updateModifierAppearance();
+                resetComposingWord();
+                return;
+            } else if (ch == 'c') {
+                handleCopy(connection);
+                clearLatchedModifiers();
+                updateModifierAppearance();
+                resetComposingWord();
+                return;
+            } else if (ch == 'v') {
+                handlePaste(connection);
+                clearLatchedModifiers();
+                updateModifierAppearance();
+                resetComposingWord();
+                return;
+            } else if (ch == 'x') {
+                handleCut(connection);
+                clearLatchedModifiers();
+                updateModifierAppearance();
+                resetComposingWord();
+                return;
+            } else if (ch == 'z') {
+                handleUndo(connection);
+                clearLatchedModifiers();
+                updateModifierAppearance();
+                resetComposingWord();
+                return;
+            } else if (ch == 'y') {
+                handleRedo(connection);
+                clearLatchedModifiers();
+                updateModifierAppearance();
+                resetComposingWord();
+                return;
+            }
+        }
+
         int keyCode;
         if (primaryCode >= 'a' && primaryCode <= 'z') {
             keyCode = KeyEvent.KEYCODE_A + (primaryCode - 'a');
@@ -1320,10 +1568,16 @@ public class AmsKeyboardService extends InputMethodService
         if (mAltLatched) {
             meta |= KeyEvent.META_ALT_ON | KeyEvent.META_ALT_LEFT_ON;
         }
-        connection.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(),
-                SystemClock.uptimeMillis(), KeyEvent.ACTION_DOWN, keyCode, 0, meta));
-        connection.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(),
-                SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, keyCode, 0, meta));
+
+        sendHardwareKeyWithMeta(connection, keyCode, meta);
+
+        // In terminal/console environments (Termux, Python REPL, Bash),
+        // send ASCII control character (e.g. Ctrl+D = 0x04 EOF, Ctrl+L = 0x0C clear, Ctrl+Z = 0x1A suspend)
+        if (mCtrlLatched && isTerminal && ch >= 'a' && ch <= 'z') {
+            char ctrlCode = (char) (ch - 'a' + 1);
+            connection.commitText(String.valueOf(ctrlCode), 1);
+        }
+
         clearLatchedModifiers();
         updateModifierAppearance();
         resetComposingWord();
@@ -1344,9 +1598,13 @@ public class AmsKeyboardService extends InputMethodService
                     case Keyboard.KEYCODE_SHIFT:
                         key.on = shiftOn;
                         key.sticky = true;
-                        key.icon = getDrawable(mCaps
-                                ? R.drawable.ic_caps_lock
-                                : R.drawable.ic_shift);
+                        if (mCaps) {
+                            key.icon = getDrawable(R.drawable.ic_caps_lock);
+                        } else if (mShiftLatched) {
+                            key.icon = getDrawable(R.drawable.ic_shift_active);
+                        } else {
+                            key.icon = getDrawable(R.drawable.ic_shift);
+                        }
                         break;
                     case KEYCODE_CTRL:
                         key.on = mCtrlLatched;
@@ -1377,9 +1635,6 @@ public class AmsKeyboardService extends InputMethodService
         mDoubleSpaceArmed = false;
         if (typed == ' ') {
             handleSpace(connection);
-        } else if (".!?".indexOf(typed) >= 0 && mAutoCapitalizeEnabled) {
-            // Typing punctuation at the end of a sentence arms the next capital letter.
-            applyAutoShift(true);
         }
         updateSuggestions();
     }
@@ -1423,9 +1678,16 @@ public class AmsKeyboardService extends InputMethodService
                 connection.deleteSurroundingText(1, 0);
                 connection.commitText(". ", 1);
             }
-        }
-        if (mAutoCapitalizeEnabled) {
-            applyAutoShift(true);
+            if (mAutoCapitalizeEnabled) {
+                applyAutoShift(true);
+            }
+        } else {
+            // Regular space: only auto-capitalize if at a true sentence boundary
+            if (mAutoCapitalizeEnabled && shouldAutoCapitalize(connection)) {
+                applyAutoShift(true);
+            } else if (mShiftWasAuto) {
+                applyAutoShift(false);
+            }
         }
     }
 
@@ -1444,18 +1706,60 @@ public class AmsKeyboardService extends InputMethodService
         if (mCurrentWord.length() > 0) {
             mCurrentWord.setLength(mCurrentWord.length() - 1);
         }
-        if (before != null && before.length() > 0 && ".!?".indexOf(before.charAt(0)) >= 0
-                && mAutoCapitalizeEnabled) {
+        if (mAutoCapitalizeEnabled && shouldAutoCapitalize(connection)) {
             applyAutoShift(true);
+        } else if (mShiftWasAuto) {
+            applyAutoShift(false);
         }
         mDoubleSpaceArmed = false;
         updateSuggestions();
     }
 
+    private boolean shouldAutoCapitalize(InputConnection connection) {
+        if (!mAutoCapitalizeEnabled || isPasswordField() || connection == null) {
+            return false;
+        }
+        EditorInfo info = getCurrentInputEditorInfo();
+        int reqModes = android.text.TextUtils.CAP_MODE_SENTENCES;
+        if (info != null) {
+            int flag = info.inputType & (android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                    | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+                    | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+            if (flag == android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) {
+                return true;
+            }
+            if (flag == android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS) {
+                reqModes = android.text.TextUtils.CAP_MODE_WORDS;
+            }
+        }
+        try {
+            int caps = connection.getCursorCapsMode(reqModes);
+            if (caps != 0) {
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        // Fallback buffer inspection
+        CharSequence before = connection.getTextBeforeCursor(4, 0);
+        if (before == null || before.length() == 0) {
+            return true;
+        }
+        String str = before.toString();
+        if (str.endsWith("\n")) {
+            return true;
+        }
+        if (str.length() >= 2) {
+            char last = str.charAt(str.length() - 1);
+            char prev = str.charAt(str.length() - 2);
+            if (Character.isWhitespace(last) && (prev == '.' || prev == '!' || prev == '?')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
-     * True when nothing precedes the caret. Editors that refuse to report surrounding text return
-     * null or an empty string; in that case starting a sentence with a capital is the friendly
-     * default.
+     * True when nothing precedes the caret.
      */
     private boolean isCaretAtFieldStart() {
         InputConnection connection = getCurrentInputConnection();
@@ -1583,8 +1887,10 @@ public class AmsKeyboardService extends InputMethodService
         mCurrentWord.setLength(0);
         mComposingSuggestion = true;
         updateSuggestions();
-        if (mAutoCapitalizeEnabled) {
+        if (mAutoCapitalizeEnabled && shouldAutoCapitalize(connection)) {
             applyAutoShift(true);
+        } else if (mShiftWasAuto) {
+            applyAutoShift(false);
         }
     }
 

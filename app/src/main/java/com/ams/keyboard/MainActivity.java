@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
@@ -73,6 +74,10 @@ public class MainActivity extends Activity {
         super.onResume();
         refreshSetupStatus();
         syncControlsFromPreferences();
+        if (KeyboardPreferences.isNotificationShortcutsEnabled(this)) {
+            checkAndRequestNotificationPermission();
+            NotificationHelper.showNotification(this);
+        }
     }
 
     // ---------------------------------------------------------------- setup status
@@ -117,6 +122,38 @@ public class MainActivity extends Activity {
             Toast.makeText(this, R.string.setup_refresh, Toast.LENGTH_SHORT).show();
         });
         findViewById(R.id.button_test).setOnClickListener(view -> showTestField());
+        View addTileBtn = findViewById(R.id.button_add_quick_tile);
+        if (addTileBtn != null) {
+            addTileBtn.setOnClickListener(view -> requestAddQuickTile());
+        }
+    }
+
+    private void requestAddQuickTile() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            android.app.StatusBarManager statusBarManager = getSystemService(android.app.StatusBarManager.class);
+            if (statusBarManager != null) {
+                statusBarManager.requestAddTileService(
+                        new android.content.ComponentName(this, QuickToolsTileService.class),
+                        getString(R.string.quick_tile_label),
+                        android.graphics.drawable.Icon.createWithResource(this, R.drawable.ic_keyboard),
+                        getMainExecutor(),
+                        resultCode -> {
+                            if (resultCode == android.app.StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED) {
+                                Toast.makeText(this, R.string.quick_tile_added_success, Toast.LENGTH_SHORT).show();
+                            } else if (resultCode == android.app.StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
+                                Toast.makeText(this, R.string.quick_tile_already_added, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                );
+                return;
+            }
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.quick_tile_instructions_title)
+                .setMessage(R.string.quick_tile_instructions_message)
+                .setPositiveButton(R.string.close, null)
+                .show();
     }
 
     private void showTestField() {
@@ -171,6 +208,7 @@ public class MainActivity extends Activity {
         } else {
             setPill(R.string.setup_needs_enable, true);
         }
+        QuickToolsTileService.requestListeningState(this);
     }
 
     private void setPill(int textRes, boolean warn) {
@@ -215,6 +253,10 @@ public class MainActivity extends Activity {
                 KeyboardPreferences.DEFAULT_CLIPBOARD_HISTORY,
                 R.string.setting_clipboard_history_title,
                 R.string.setting_clipboard_history_summary);
+        bindSwitch(R.id.row_notification_shortcuts, KeyboardPreferences.KEY_NOTIFICATION_SHORTCUTS,
+                KeyboardPreferences.DEFAULT_NOTIFICATION_SHORTCUTS,
+                R.string.setting_notification_shortcuts_title,
+                R.string.setting_notification_shortcuts_summary);
     }
 
     private void bindSwitch(int rowId, String key, boolean fallback, int titleRes, int summaryRes) {
@@ -230,10 +272,18 @@ public class MainActivity extends Activity {
         boolean value = KeyboardPreferences.getBoolean(this, key, fallback);
         toggle.setChecked(value);
         Runnable apply = () -> {
-            KeyboardPreferences.get(this).edit().putBoolean(key, toggle.isChecked()).apply();
+            boolean checked = toggle.isChecked();
+            KeyboardPreferences.get(this).edit().putBoolean(key, checked).apply();
             if (KeyboardPreferences.KEY_CLIPBOARD_HISTORY.equals(key)) {
                 ClipboardHistoryStore.applyLimit(this,
                         KeyboardPreferences.getClipboardLimit(this));
+            } else if (KeyboardPreferences.KEY_NOTIFICATION_SHORTCUTS.equals(key)) {
+                if (checked) {
+                    checkAndRequestNotificationPermission();
+                    NotificationHelper.showNotification(this);
+                } else {
+                    NotificationHelper.cancelNotification(this);
+                }
             }
         };
         toggle.setOnCheckedChangeListener((button, checked) -> apply.run());
@@ -306,6 +356,7 @@ public class MainActivity extends Activity {
         setSwitch(R.id.row_preview, KeyboardPreferences.isKeyPreviewEnabled(this));
         setSwitch(R.id.row_alt_toolbar, KeyboardPreferences.isAltToolbarEnabled(this));
         setSwitch(R.id.row_clipboard_history, KeyboardPreferences.isClipboardHistoryEnabled(this));
+        setSwitch(R.id.row_notification_shortcuts, KeyboardPreferences.isNotificationShortcutsEnabled(this));
 
         int height = KeyboardPreferences.getKeyboardHeightPercent(this);
         mHeightSeek.setProgress(height - KeyboardPreferences.MIN_KEYBOARD_HEIGHT);
@@ -358,5 +409,24 @@ public class MainActivity extends Activity {
                                     Toast.LENGTH_SHORT).show();
                         })
                         .show());
+    }
+
+    private void checkAndRequestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 102);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 102) {
+            if (grantResults != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                NotificationHelper.showNotification(this);
+            }
+        }
     }
 }

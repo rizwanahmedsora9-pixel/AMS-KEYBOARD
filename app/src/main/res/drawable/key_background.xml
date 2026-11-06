@@ -1,30 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Latched modifier keys (Shift / Ctrl / Alt / AltGr or Caps Lock) -->
+
+    <!-- 1. Latched & Pressed (e.g. Shift / Ctrl / Alt actuated while active) -->
     <item android:state_checkable="true" android:state_checked="true" android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/key_background_pressed" />
-            <corners android:radius="@dimen/key_corner_radius" />
-            <stroke android:width="1dp" android:color="@color/ime_accent" />
-        </shape>
+        <layer-list>
+            <!-- Mechanical switch skirt / plate shadow -->
+            <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_shadow" />
+                    <corners android:radius="6dp" />
+                </shape>
+            </item>
+            <!-- Depressed keycap face with RGB illumination -->
+            <item android:left="2dp" android:right="2dp" android:top="4dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_accent_pressed" />
+                    <corners android:radius="5dp" />
+                    <stroke android:width="1.5dp" android:color="@color/ime_accent" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
+
+    <!-- 2. Latched / Active Modifier (Shift / Caps Lock / Ctrl / Alt active RGB glow) -->
     <item android:state_checkable="true" android:state_checked="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/key_background_active" />
-            <corners android:radius="@dimen/key_corner_radius" />
-            <stroke android:width="1dp" android:color="@color/ime_accent" />
-        </shape>
+        <layer-list>
+            <!-- Mechanical switch skirt / 3D bottom bevel -->
+            <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_shadow" />
+                    <corners android:radius="6dp" />
+                </shape>
+            </item>
+            <!-- Raised keycap face with RGB backlight glow -->
+            <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="4dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_accent_face" />
+                    <corners android:radius="5dp" />
+                    <stroke android:width="1.5dp" android:color="@color/ime_accent" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
+
+    <!-- 3. Normal Key Pressed (actuated switch travel depression) -->
     <item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/key_background_pressed" />
-            <corners android:radius="@dimen/key_corner_radius" />
-        </shape>
+        <layer-list>
+            <!-- Mechanical switch skirt / bottom bevel -->
+            <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_shadow" />
+                    <corners android:radius="6dp" />
+                </shape>
+            </item>
+            <!-- Keycap depressed downward into switch base -->
+            <item android:left="2dp" android:right="2dp" android:top="4dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_face_pressed" />
+                    <corners android:radius="5dp" />
+                    <stroke android:width="1dp" android:color="@color/mech_key_highlight_pressed" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
+
+    <!-- 4. Default Resting Mechanical Keycap (elevated with 3D bottom skirt bevel) -->
     <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/key_background" />
-            <corners android:radius="@dimen/key_corner_radius" />
-        </shape>
+        <layer-list>
+            <!-- 3D switch skirt / shadow bevel -->
+            <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_shadow" />
+                    <corners android:radius="6dp" />
+                </shape>
+            </item>
+            <!-- Raised PBT keycap face with top edge highlight -->
+            <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="4dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/mech_key_face" />
+                    <corners android:radius="5dp" />
+                    <stroke android:width="1dp" android:color="@color/mech_key_highlight" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
 </selector>

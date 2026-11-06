@@ -42,10 +42,10 @@
     <string name="setting_auto_capitalize_summary">Start sentences and the first word of a field with a capital letter.</string>
     <string name="setting_double_space_period_title">Double-space period</string>
     <string name="setting_double_space_period_summary">Pressing space twice inserts a full stop and a space.</string>
-    <string name="setting_sound_title">Key sound</string>
-    <string name="setting_sound_summary">Play a click when a key is typed.</string>
-    <string name="setting_vibrate_title">Vibrate on keypress</string>
-    <string name="setting_vibrate_summary">Give a short haptic tick for each key.</string>
+    <string name="setting_sound_title">Mechanical switch sound</string>
+    <string name="setting_sound_summary">Play a mechanical switch click sound when typing.</string>
+    <string name="setting_vibrate_title">Tactile haptic feedback</string>
+    <string name="setting_vibrate_summary">Provide a crisp mechanical tactile vibration for each keypress.</string>
     <string name="setting_key_preview_title">Key popup</string>
     <string name="setting_key_preview_summary">Show a magnified preview of the key you press.</string>
     <string name="setting_keyboard_height_title">Keyboard height</string>
@@ -91,6 +91,7 @@
     <string name="tool_copy_all">Copy all</string>
     <string name="tool_copy_all_done">Copied the whole field (%1$d characters).</string>
     <string name="tool_copy_all_empty">Nothing to copy.</string>
+    <string name="tool_copy_selection_done">Copied selection (%1$d characters).</string>
     <string name="tool_undo">Undo</string>
     <string name="tool_redo">Redo</string>
     <string name="tool_settings">Settings</string>
@@ -130,4 +131,44 @@
     <string name="clipboard_clear">Clear clipboard history</string>
     <string name="clipboard_history_on">Clipboard history is on</string>
     <string name="clipboard_history_off">Clipboard history is off</string>
+
+    <!-- Notification panel shortcuts & Quick tools -->
+    <string name="setting_notification_shortcuts_title">Notification panel shortcuts</string>
+    <string name="setting_notification_shortcuts_summary">Show a persistent notification so you can access shortcuts, clipboard history, and typing from any screen.</string>
+    <string name="notification_channel_name">AMS Keyboard Shortcuts &amp; Tools</string>
+    <string name="notification_channel_desc">Quick access to shortcuts, clipboard history, and tools from the notification drawer.</string>
+    <string name="notification_title">AMS Keyboard</string>
+    <string name="notification_text">Tap for quick shortcuts, clipboard &amp; tools</string>
+    <string name="notification_action_shortcuts">Shortcuts</string>
+    <string name="notification_action_clipboard">Clipboard</string>
+    <string name="notification_action_quick_type">Quick Type</string>
+    <string name="notification_action_settings">Settings</string>
+    <string name="quick_tools_dialog_title">AMS Keyboard Tools</string>
+    <string name="quick_tools_shortcuts_tab">Shortcuts</string>
+    <string name="quick_tools_clipboard_tab">Clipboard</string>
+    <string name="quick_tools_type_tab">Quick Type</string>
+    <string name="quick_type_hint">Type anything here using AMS Keyboard…</string>
+    <string name="quick_type_copy_done">Copied to clipboard!</string>
+    <string name="quick_type_clear">Clear</string>
+    <string name="quick_type_copy_all">Copy All</string>
+    <string name="quick_type_copy_and_exit">Copy &amp; Exit</string>
+    <string name="quick_type_paste">Paste</string>
+    <string name="quick_type_select_all">Select All</string>
+    <string name="quick_tile_label">AMS Keyboard</string>
+    <string name="quick_tile_subtitle">Shortcuts &amp; Clipboard</string>
+    <string name="quick_tile_active">Active · Tap for tools</string>
+    <string name="quick_tile_inactive">Tap to switch or open tools</string>
+    <string name="setting_group_quick_settings">Quick Settings</string>
+    <string name="setting_quick_tile_title">Quick Settings panel toggle</string>
+    <string name="setting_quick_tile_summary">Add an AMS Keyboard tile to your Android Quick Settings panel to access shortcuts, clipboard history, and typing from any screen.</string>
+    <string name="setting_quick_tile_button">Add to Quick Settings</string>
+    <string name="quick_tile_added_success">AMS Keyboard tile added to Quick Settings!</string>
+    <string name="quick_tile_already_added">AMS Keyboard tile is already in your Quick Settings panel.</string>
+    <string name="quick_tile_instructions_title">Add to Quick Settings</string>
+    <string name="quick_tile_instructions_message">To add AMS Keyboard to your Quick Settings panel:\n\n1. Swipe down twice from the top of your screen to open Quick Settings.\n2. Tap the Edit button (pencil icon).\n3. Find the AMS Keyboard tile and drag it up into your active tiles.</string>
+    <string name="switch_keyboard_btn">Switch Keyboard</string>
+    <string name="clipboard_search_hint">Search clipboard history…</string>
+    <string name="clipboard_history_empty_search">No matching clips found.</string>
+    <string name="clipboard_copied">Copied to clipboard</string>
+    <string name="clipboard_deleted">Clip deleted</string>
 </resources>
